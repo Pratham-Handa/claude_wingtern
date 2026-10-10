@@ -5,7 +5,7 @@ Learn anything through what you love. Lens explains technical, finance and every
 1. **The concept**: a plain, analogy-free explanation (the accuracy anchor)
 2. **The analogy**, with a **structural mapping table** pairing concept parts with analogy parts
 3. **A visual**: step-through state, comparison table, or Mermaid diagram
-4. **Watch it**: an animated explainer, written by Claude as code (no video model)
+4. **Watch it**: an animated explainer, written by Claude as code (no video model), with fullscreen and optional spoken narration (browser voice)
 5. **A worked example** using real numbers
 6. **Where the analogy breaks**
 7. **Check yourself**: an MCQ with feedback on every option
@@ -44,5 +44,8 @@ Also set a **spend limit** on the API key's workspace in the Anthropic Console (
 - Requests use server-side refusal fallbacks (`fallbacks: "default"`) and retry without them if the API rejects the parameter.
 - Rate limiting is per IP and in memory (best effort), with an optional passcode.
 - Learning signals (cards, check answers, "did this click?") are stored in `localStorage` only.
+- Visuals can be enlarged in a lightbox (zoom and pan for diagrams).
+- Light and dark themes follow the OS setting, with a toggle in the top bar. Tokens live in `src/app/globals.css`.
+- Narration uses the Web Speech API: free and offline, but voice quality depends on the device. Edge and Chrome "Natural" voices sound best.
 
 Model overrides: `LENS_CARD_MODEL`, `LENS_SCENE_MODEL`, `LENS_CINEMATIC_MODEL`.

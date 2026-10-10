@@ -219,6 +219,31 @@ DESIGN.md says the interface should be *still*: no entrance animations, no anima
 ### Diagrams
 Mermaid uses the `base` theme with `themeVariables` mapped to the tokens: ink lines and text, white nodes, line-colour borders, an orange highlight, DM Sans font. Custom `steps` and `comparison` components use the same tokens, so every visual looks like one system.
 
+### Dark mode (added after Build Day testing)
+DESIGN.md defines only a light palette, so this dark palette was derived from it and keeps the same warm, academic feel. All colours are semantic CSS variables (`globals.css`). Tailwind maps onto them with `@theme inline`, so every `text-ink` / `bg-cream` class switches automatically.
+
+| Token | Light | Dark |
+|---|---|---|
+| canvas | #f7f8f5 | #0f1b26 |
+| surface (cards) | #ffffff | #162534 |
+| text (ink) | #19324a | #e6edf1 |
+| muted | #718293 | #93a5b4 |
+| line | #dfe7e6 | #263a4b |
+| orange | #f0724d | #f4845f |
+| teal | #0b7771 | #3fb5aa |
+| hero | #e6f0ec | #14302e |
+| AI panel bg / border / text | #fff8ec / #f0d0a6 / #9c5e2a | #2a2116 / #5c4526 / #e9b886 |
+| flagged bg / text | #fff0ec / #b04d46 | #3a1e1b / #f2a08f |
+
+- The default follows the OS setting, with a System / Light / Dark toggle in the top bar. An inline `<head>` script sets `data-theme` before first paint, so there's no flash.
+- The SVG explainer stage and Mermaid diagrams use the theme too: resolved token values come from `useThemeColors()`.
+- Cinematic clips keep their light "paper" stage in both themes on purpose.
+
+### Enlarge, fullscreen and narration
+- **03 · See it** has an Expand button, and clicking the visual itself also opens a `<dialog>` lightbox. Steps and tables render larger. Diagrams support zoom and pan (wheel, buttons, drag).
+- Both players have a **fullscreen** button. They use the Fullscreen API, with a fixed-overlay fallback for iPhone Safari.
+- **Narration** uses the browser's built-in voice (Web Speech API). It's off by default and toggled per device. The explainer's clock holds at the end of each scene until its caption has been spoken. Cinematic clips forward their captions to the page through an injected `postMessage` bridge, since the sandbox blocks direct access.
+
 ### Don'ts carried over
 No Tailwind default blue or grey, no `rounded-full` buttons or cards, no decorative shadows beyond the hover lift and CTA bevel, and only one breakpoint (`700px`).
 

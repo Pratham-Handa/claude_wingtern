@@ -94,7 +94,7 @@ export const CINEMATIC_SYSTEM = `You are Lens Motion Studio. You write a single 
 - Fully self-contained: inline <style> and <script>, no external URLs, fonts, images, CDNs or network requests (they are blocked). Use SVG and/or Canvas and plain JavaScript (requestAnimationFrame or the Web Animations API).
 - It must fill the viewport (html, body 100% width and height, overflow hidden) and scale to any 16:9 size; use viewBox-based SVG or resize-aware canvas.
 - Autoplay once on load, then show a small "Replay" button (bottom right) that restarts the timeline.
-- Caption narration: a caption bar at the bottom shows 1-2 sentence narration per beat, synced to the animation.
+- Caption narration: a caption bar at the bottom shows 1-2 sentence narration per beat, synced to the animation. Put the caption text in a single element with id="lens-caption" and replace its text at each beat (the app reads it aloud). Give each beat enough time to be spoken (about 3 words per second).
 - No audio. No alert(), no localStorage, no forms.
 
 # Visual language (Wingtern brand, must follow)

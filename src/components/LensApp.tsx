@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, SlidersHorizontal, ThumbsDown, ThumbsUp, Wand2 } from "lucide-react";
+import { ArrowLeft, Monitor, Moon, Search, SlidersHorizontal, Sun, ThumbsDown, ThumbsUp, Wand2 } from "lucide-react";
+import { useTheme, type ThemePref } from "@/lib/client/theme";
 import { INTERESTS, OTHER_ACCENT, accentFor, labelFor } from "@/lib/interests";
 import { CardSchema, type Card, type Mode } from "@/lib/schema";
 import { LensError, partialJson, streamLens } from "@/lib/client/stream";
@@ -145,8 +146,8 @@ function LensInner() {
       <TopBar
         right={
           !onboarding && (
-            <button className="action-button !py-2" onClick={() => setEditing(true)}>
-              <SlidersHorizontal size={14} /> Interests
+            <button className="action-button !px-2.5 !py-2 sm:!px-3.5" aria-label="Edit interests" onClick={() => setEditing(true)}>
+              <SlidersHorizontal size={14} /> <span className="hidden sm:inline">Interests</span>
               <span className="flex gap-0.5">
                 {interests.map((i) => (
                   <span key={i} aria-hidden>
@@ -308,15 +309,44 @@ function LensInner() {
 
 function TopBar({ right }: { right?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 flex h-[67px] items-center justify-between px-4 backdrop-blur-[10px] sm:h-20 sm:px-[max(24px,calc((100vw-1180px)/2))]" style={{ background: "rgba(247,248,245,0.94)" }}>
+    <header className="sticky top-0 z-10 flex h-[67px] items-center justify-between px-4 backdrop-blur-[10px] sm:h-20 sm:px-[max(24px,calc((100vw-1180px)/2))]" style={{ background: "var(--topbar)" }}>
       <Link href="/" className="flex items-center gap-2.5 text-ink no-underline">
         <span className="grid h-[29px] w-[29px] place-items-center rounded-brand bg-orange font-[Georgia,serif] text-[17px] font-bold text-white">W</span>
-        <span className="text-[18px] font-bold tracking-[-0.6px] sm:text-[21px]">
+        <span className="whitespace-nowrap text-[18px] font-bold tracking-[-0.6px] sm:text-[21px]">
           wingtern <span className="text-orange">lens</span>
         </span>
       </Link>
-      {right}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {right}
+        <ThemeToggle />
+      </div>
     </header>
+  );
+}
+
+const THEME_OPTIONS: { pref: ThemePref; label: string; Icon: typeof Sun }[] = [
+  { pref: "system", label: "Match system", Icon: Monitor },
+  { pref: "light", label: "Light", Icon: Sun },
+  { pref: "dark", label: "Dark", Icon: Moon },
+];
+
+function ThemeToggle() {
+  const { pref, setPref } = useTheme();
+  return (
+    <div role="group" aria-label="Theme" className="flex rounded-[4px] border border-btn-border bg-surface p-0.5">
+      {THEME_OPTIONS.map(({ pref: p, label, Icon }) => (
+        <button
+          key={p}
+          onClick={() => setPref(p)}
+          aria-pressed={pref === p}
+          aria-label={label}
+          title={label}
+          className={`grid h-7 w-7 place-items-center rounded-[3px] sm:h-8 sm:w-8 ${pref === p ? "bg-teal-light text-teal" : "text-muted"}`}
+        >
+          <Icon size={15} />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -649,7 +679,7 @@ function SignalsCard({ summary, customInterest }: { summary: SignalSummary; cust
 
 function Stat({ n, label }: { n: number; label: string }) {
   return (
-    <div className="rounded-[3px] bg-[#f7f9f8] py-2">
+    <div className="rounded-[3px] bg-surface-2 py-2">
       <div className="text-[22px] font-bold tracking-[-1px]">{n}</div>
       <div className="font-mono text-[9px] uppercase tracking-[0.5px] text-muted">{label}</div>
     </div>

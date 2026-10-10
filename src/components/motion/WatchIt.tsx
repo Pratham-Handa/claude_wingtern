@@ -1,21 +1,35 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Clapperboard, Film, Loader2, Sparkles } from "lucide-react";
+import { Clapperboard, Film, Loader2, RotateCcw, Sparkles } from "lucide-react";
 import type { Card, SceneScript } from "@/lib/schema";
 import { SceneScriptSchema } from "@/lib/schema";
 import { LensError, partialJson, streamLens } from "@/lib/client/stream";
 import { logSignal } from "@/lib/client/signals";
-import { ScenePlayer } from "./ScenePlayer";
+import { useFullscreen } from "@/lib/client/fullscreen";
+import { useNarration } from "@/lib/client/narration";
+import { PlayerExtras, ScenePlayer } from "./ScenePlayer";
 
 const CSP =
   "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:\">";
 
-/** Lock model-written HTML down: no network, and it runs in an opaque-origin sandbox. */
+/**
+ * Caption bridge: the sandboxed iframe has an opaque origin, so the parent can't
+ * read it. This forwards the clip's caption text to the parent for narration.
+ * It re-queries on every DOM change because some clips rebuild the caption
+ * element on replay.
+ */
+const CAPTION_BRIDGE = `<script>(function(){var sel="#lens-caption,[data-lens-caption],#caption,#cap",last="";function send(){var el=document.querySelector(sel);if(!el)return;var t=(el.textContent||"").replace(/\\s+/g," ").trim().replace(/^\\d{1,2}(\\s*\\/\\s*\\d{1,2})?\\s*[·\\-–]?\\s*/,"");if(t&&t!==last){last=t;try{parent.postMessage({type:"lens-caption",text:t},"*")}catch(e){}}}new MutationObserver(send).observe(document.documentElement,{childList:true,characterData:true,subtree:true});send();})();</script>`;
+
+/** Lock model-written HTML down (no network, opaque-origin sandbox) and add the caption bridge. */
 function hardenHtml(raw: string): string {
   let html = raw.trim().replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "");
-  if (/<head[^>]*>/i.test(html)) html = html.replace(/<head([^>]*)>/i, `<head$1>${CSP}`);
-  else html = CSP + html;
+  if (!/Content-Security-Policy/i.test(html)) {
+    if (/<head[^>]*>/i.test(html)) html = html.replace(/<head([^>]*)>/i, `<head$1>${CSP}`);
+    else html = CSP + html;
+  }
+  if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${CAPTION_BRIDGE}</body>`);
+  else html += CAPTION_BRIDGE;
   return html;
 }
 
@@ -32,7 +46,7 @@ type Tier1State =
 type Tier2State =
   | { s: "idle" }
   | { s: "loading"; chars: number; note: string }
-  | { s: "ready"; html?: string; src?: string }
+  | { s: "ready"; html: string }
   | { s: "error"; message: string };
 
 export function WatchIt({
@@ -89,9 +103,18 @@ export function WatchIt({
   const startTier2 = async () => {
     setView(2);
     logSignal({ concept: card.concept_title, interest: card.chosen_interest, visual: card.visual.type, mode: "watch", event: "watch", tier: 2 });
-    if (presetCinematic) return setT2({ s: "ready", src: presetCinematic });
+    if (presetCinematic) {
+      // Load showcase clips as text so they get the same hardening + caption bridge.
+      try {
+        const res = await fetch(presetCinematic);
+        if (!res.ok) throw new Error();
+        return setT2({ s: "ready", html: hardenHtml(await res.text()) });
+      } catch {
+        return setT2({ s: "error", message: "Couldn't load the cinematic clip." });
+      }
+    }
     const cached = localStorage.getItem(cacheKey(card, 2));
-    if (cached) return setT2({ s: "ready", html: cached });
+    if (cached) return setT2({ s: "ready", html: hardenHtml(cached) });
     setT2({ s: "loading", chars: 0, note: "Storyboarding" });
     abort.current = new AbortController();
     try {
@@ -107,7 +130,7 @@ export function WatchIt({
       if (!/<(svg|canvas|html|body|div)/i.test(text)) throw new LensError("The cinematic clip didn't come back as HTML. Try again.");
       const html = hardenHtml(text);
       try {
-        localStorage.setItem(cacheKey(card, 2), html);
+        localStorage.setItem(cacheKey(card, 2), text);
       } catch {
         /* too big for storage; still play it */
       }
@@ -164,17 +187,7 @@ export function WatchIt({
             />
           )}
           {t2.s === "error" && <ErrorNote message={t2.message} onRetry={startTier2} />}
-          {t2.s === "ready" && (
-            <div className="overflow-hidden rounded-[8px] border border-line bg-cream">
-              <iframe
-                title="Cinematic explainer"
-                className="block aspect-video w-full"
-                sandbox="allow-scripts"
-                referrerPolicy="no-referrer"
-                {...(t2.src ? { src: t2.src } : { srcDoc: t2.html })}
-              />
-            </div>
-          )}
+          {t2.s === "ready" && t2.html && <CinematicPlayer html={t2.html} />}
           <p className="mb-0 mt-3 font-mono text-[10px] uppercase tracking-[0.5px] text-muted">
             No video model: Claude writes this animation as code, and it runs in a sandbox.
           </p>
@@ -184,9 +197,78 @@ export function WatchIt({
   );
 }
 
+/** Sandboxed cinematic clip with fullscreen, restart and caption narration. */
+function CinematicPlayer({ html }: { html: string }) {
+  const { ref: fsRef, active: fsActive, pseudo: fsPseudo, toggle: fsToggle } = useFullscreen<HTMLDivElement>();
+  const narration = useNarration();
+  const frame = useRef<HTMLIFrameElement>(null);
+  const [run, setRun] = useState(0);
+  const { speak, cancel, enabled } = narration;
+
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== frame.current?.contentWindow) return;
+      const data = e.data as { type?: string; text?: unknown };
+      if (data?.type === "lens-caption" && typeof data.text === "string" && enabled) {
+        void speak(data.text.slice(0, 400));
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [enabled, speak]);
+
+  useEffect(() => cancel, [cancel]);
+
+  return (
+    <div
+      ref={fsRef}
+      tabIndex={-1}
+      className={`player-shell outline-none ${fsPseudo ? "lens-pseudo-fs" : ""}`}
+      onKeyDown={(e) => {
+        if (e.key === "f" || e.key === "F") {
+          e.preventDefault();
+          fsToggle();
+        }
+      }}
+      aria-label="Cinematic player"
+    >
+      <div className="player-stage">
+        {/* The clip keeps its own light "paper" stage in both themes. */}
+        <div className="stage-box overflow-hidden rounded-[8px] border border-line" style={{ background: "#f7f8f5" }}>
+          <iframe
+            key={run}
+            ref={frame}
+            title="Cinematic explainer"
+            className="block aspect-video w-full"
+            sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
+            srcDoc={html}
+          />
+        </div>
+      </div>
+      <div className="player-controls mt-3 flex items-center gap-2">
+        <button
+          className="action-button !p-2"
+          aria-label="Restart clip"
+          onClick={() => {
+            cancel();
+            setRun((r) => r + 1);
+          }}
+        >
+          <RotateCcw size={16} />
+        </button>
+        <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.5px] text-muted">
+          {narration.supported ? (enabled ? "Narration on" : "Turn on narration to hear the captions") : ""}
+        </span>
+        <PlayerExtras narration={narration} fsActive={fsActive} onFullscreen={fsToggle} />
+      </div>
+    </div>
+  );
+}
+
 function Progress({ label, sub }: { label: string; sub?: string }) {
   return (
-    <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-[8px] border border-dashed border-[#cbd8d6] bg-cream text-center">
+    <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-[8px] border border-dashed border-dash bg-cream text-center">
       <Loader2 size={22} className="animate-spin text-teal" />
       <div className="text-[13px] font-bold">{label}</div>
       {sub && <div className="max-w-sm px-4 text-[12px] text-muted">{sub}</div>}
@@ -196,7 +278,7 @@ function Progress({ label, sub }: { label: string; sub?: string }) {
 
 function ErrorNote({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="rounded-[5px] border border-[#f3c9bd] bg-flagged-bg p-4 text-[13px] text-flagged-text">
+    <div className="rounded-[5px] border border-flagged-border bg-flagged-bg p-4 text-[13px] text-flagged-text">
       {message}{" "}
       <button className="ml-2 font-bold underline" onClick={onRetry}>
         Try again

@@ -43,10 +43,10 @@ export function CheckQuestion({
           const isPicked = picked === i;
           const tone = !answered ? "idle" : o.correct ? "right" : isPicked ? "wrong" : "other";
           const styles: Record<string, string> = {
-            idle: "border-[#bbd0cd] bg-white",
+            idle: "border-btn-border bg-surface",
             right: "border-active bg-active-bg",
             wrong: "border-flagged bg-flagged-bg",
-            other: "border-line bg-white opacity-80",
+            other: "border-line bg-surface opacity-80",
           };
           return (
             <button
@@ -64,7 +64,7 @@ export function CheckQuestion({
                     ? "border-active bg-active text-white"
                     : tone === "wrong"
                       ? "border-flagged bg-flagged text-white"
-                      : "border-[#bbd0cd] text-teal"
+                      : "border-btn-border text-teal"
                 }`}
               >
                 {tone === "right" ? <Check size={12} /> : tone === "wrong" ? <X size={12} /> : String.fromCharCode(65 + i)}

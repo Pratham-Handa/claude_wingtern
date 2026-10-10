@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Mono, DM_Sans, Playfair_Display } from "next/font/google";
+import { THEME_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -28,12 +29,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#102a43",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#102a43" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1b26" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmMono.variable} ${playfair.variable} antialiased`}>
+    // data-theme is set by THEME_SCRIPT before hydration, so React must not warn about it.
+    <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${dmMono.variable} ${playfair.variable} antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen">{children}</body>
     </html>
   );

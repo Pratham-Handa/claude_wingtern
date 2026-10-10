@@ -1,10 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { AlertTriangle, ArrowRight } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { AlertTriangle, ArrowRight, Maximize2 } from "lucide-react";
 import type { Card, SceneScript } from "@/lib/schema";
 import { accentFor, interestById, labelFor } from "@/lib/interests";
 import { Visual, hasVisual } from "./visuals/Visual";
+import { VisualLightbox } from "./visuals/VisualLightbox";
 import { CheckQuestion } from "./CheckQuestion";
 import { WatchIt } from "./motion/WatchIt";
 
@@ -14,18 +15,23 @@ function Section({
   eyebrow,
   title,
   accent,
+  action,
   children,
   className = "",
 }: {
   eyebrow: string;
   title?: string;
   accent?: string;
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <section className={`card ${className}`} style={accent ? { borderTopColor: accent } : undefined}>
-      <div className="eyebrow">{eyebrow}</div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="eyebrow">{eyebrow}</div>
+        {action}
+      </div>
       {title && <h3 className="mb-0 mt-1 text-[19px] font-bold tracking-[-0.35px]">{title}</h3>}
       <div className="mt-3">{children}</div>
     </section>
@@ -63,6 +69,8 @@ export function LearningCard({
   const interest = interestById(interestId);
   const interestLabel = labelFor(interestId, customInterest);
   const done = !streaming;
+  const [visualReady, setVisualReady] = useState(false);
+  const [enlarged, setEnlarged] = useState(false);
 
   // The section currently being written gets a skeleton after it.
   const has = {
@@ -82,7 +90,7 @@ export function LearningCard({
         <div className="flex flex-wrap items-center gap-2">
           <span className="eyebrow">Wingtern Lens</span>
           {interestId && (
-            <span className="pill" style={{ background: "#fff", border: `1px solid ${accent}`, color: "#19324a" }}>
+            <span className="pill" style={{ background: "var(--surface)", border: `1px solid ${accent}`, color: "var(--ink)" }}>
               {interest?.glyph ?? "✦"} via {interestLabel}
             </span>
           )}
@@ -109,7 +117,7 @@ export function LearningCard({
         <section className="ai-panel">
           <div className="flex flex-wrap items-center gap-2">
             <span className="ai-tag">02 · The analogy</span>
-            <span className="ai-tag" style={{ background: "#fff", border: `1px solid ${accent}`, color: "#19324a" }}>
+            <span className="ai-tag" style={{ background: "var(--surface)", border: `1px solid ${accent}`, color: "var(--ink)" }}>
               {interestLabel}
             </span>
           </div>
@@ -117,16 +125,16 @@ export function LearningCard({
           <p className="mb-0 mt-2 text-[15px] leading-[1.7]">{card.analogy_narrative}</p>
 
           {has.mapping && (
-            <div className="mt-5 overflow-hidden rounded-[5px] border border-ai-divider bg-white">
-              <div className="grid grid-cols-[1fr_auto_1fr] border-b border-ai-divider bg-[#fffaf2] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.5px] text-ai-text">
+            <div className="mt-5 overflow-hidden rounded-[5px] border border-ai-divider bg-surface">
+              <div className="grid grid-cols-[1fr_auto_1fr] border-b border-ai-divider bg-ai-row px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.5px] text-ai-text">
                 <span>The concept</span>
                 <span />
                 <span>In {interestLabel}</span>
               </div>
               {card.mapping!.map((m, i) => (
-                <div key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-[#f3e6d2] px-4 py-2.5 text-[14px] last:border-b-0">
+                <div key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-ai-row-border px-4 py-2.5 text-[14px] last:border-b-0">
                   <span className="font-bold">{m?.concept}</span>
-                  <ArrowRight size={14} className="text-ai-button" style={{ color: "#eab675" }} />
+                  <ArrowRight size={14} className="text-ai-button" />
                   <span>{m?.analogy}</span>
                 </div>
               ))}
@@ -142,8 +150,30 @@ export function LearningCard({
 
       {/* 4. Visual + Watch it */}
       {has.visual && card.visual ? (
-        <Section eyebrow="03 · See it" title={card.visual.caption} accent={accent}>
-          <Visual visual={card.visual as Card["visual"]} accent={accent} streaming={streaming} />
+        <Section
+          eyebrow="03 · See it"
+          title={card.visual.caption}
+          accent={accent}
+          action={
+            visualReady && (
+              <button className="action-button !px-2.5 !py-1.5 !text-[12px]" onClick={() => setEnlarged(true)} aria-label="Enlarge visual">
+                <Maximize2 size={14} /> Expand
+              </button>
+            )
+          }
+        >
+          <div
+            className={visualReady ? "cursor-zoom-in" : undefined}
+            onClick={(e) => {
+              // Clicking the visual enlarges it, except on its own controls (step tabs, arrows).
+              if (visualReady && !(e.target as HTMLElement).closest("button, a, [role=tab]")) setEnlarged(true);
+            }}
+          >
+            <Visual visual={card.visual as Card["visual"]} accent={accent} streaming={streaming} onRenderable={setVisualReady} />
+          </div>
+          <VisualLightbox open={enlarged} onClose={() => setEnlarged(false)} eyebrow="03 · See it" title={card.visual.caption}>
+            <Visual visual={card.visual as Card["visual"]} accent={accent} streaming={false} enlarged />
+          </VisualLightbox>
         </Section>
       ) : has.mapping && streaming ? (
         <Skeleton lines={2} />
@@ -174,7 +204,7 @@ export function LearningCard({
 
       {/* 6. Where it breaks */}
       {has.limits && (
-        <section className="rounded-[6px] border border-[#f3c9bd] bg-flagged-bg p-6">
+        <section className="rounded-[6px] border border-flagged-border bg-flagged-bg p-6">
           <div className="flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[1.5px] text-flagged-text">
             <AlertTriangle size={14} /> 05 · Where the analogy breaks
           </div>
@@ -188,7 +218,7 @@ export function LearningCard({
 
       {/* 7. Check */}
       {has.check && done ? (
-        <Section eyebrow="06 · Check yourself" accent="#0b7771">
+        <Section eyebrow="06 · Check yourself" accent="var(--teal)">
           <CheckQuestion question={card.check_question ?? ""} options={card.check_options as Card["check_options"]} onAnswer={onAnswer} />
         </Section>
       ) : has.limits && streaming ? (
