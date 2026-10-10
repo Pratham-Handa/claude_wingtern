@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binary search, through the Test rankings</title>
+<style>
+  :root { --ink:#19324a; --cream:#f7f8f5; --orange:#f0724d; --teal:#0b7771; --gold:#e5a747; --muted:#718293; --line:#dfe7e6; --accent:#5bb49c; --ease:cubic-bezier(.2,.7,.2,1); }
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--cream); color:var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #stage { position:absolute; left:50%; top:50%; width:1600px; height:900px; transform-origin:0 0; }
+  .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; text-transform:uppercase; letter-spacing:1.5px; font-size:18px; }
+  .el { position:absolute; opacity:0; transition: opacity .6s var(--ease), transform .8s var(--ease), background .4s, border-color .4s, color .4s; }
+  .on { opacity:1; }
+  .el:not(.on) { opacity:0 !important; }
+  .eyebrow { left:120px; top:110px; color:var(--teal); }
+  .title { left:120px; top:150px; width:1200px; font-size:72px; font-weight:700; letter-spacing:-3px; line-height:1.04; transform:translateY(20px); }
+  .title.on { transform:none; }
+  .title em { font-family: Georgia, serif; font-style:italic; font-weight:600; color:var(--orange); }
+  .orbit { position:absolute; border:2px solid var(--teal); border-radius:50%; opacity:.16; transform:rotate(-14deg); }
+  .row { left:120px; width:640px; height:58px; border:2px solid var(--line); border-radius:8px; background:#fff; display:flex; align-items:center; gap:22px; padding:0 22px; font-size:24px; transform:translateX(-30px); }
+  .row.on { transform:none; }
+  .row .rk { width:70px; color:var(--muted); font-size:16px; }
+  .row .nm { flex:1; font-weight:600; }
+  .row .rt { font-weight:800; font-variant-numeric: tabular-nums; }
+  .row.mid { border-color:var(--orange); background:#fff2eb; transform:translateX(18px); }
+  .row.out { opacity:.18; text-decoration:line-through; }
+  .row.found { border-color:var(--accent); background:#eaf6f1; transform:translateX(18px) scale(1.04); box-shadow:0 14px 30px rgba(25,50,74,.12); }
+  .side { left:860px; width:620px; }
+  .chip { display:inline-block; padding:12px 18px; border-radius:6px; background:#fff; border:2px solid var(--line); font-size:30px; font-weight:700; }
+  .chip.hot { border-color:var(--orange); color:var(--orange); }
+  .big { font-size:120px; font-weight:800; letter-spacing:-4px; }
+  .lbl { color:var(--muted); }
+  .bars { left:120px; top:250px; width:1360px; height:460px; }
+  .bar-row { position:absolute; left:0; width:1360px; height:80px; display:flex; align-items:center; gap:20px; }
+  .bar-row .n { width:190px; font-size:26px; font-weight:700; text-align:right; }
+  .track { flex:1; position:relative; height:64px; }
+  .bar { position:absolute; left:0; height:28px; border-radius:4px; width:0; transition: width 1.2s var(--ease); display:flex; align-items:center; }
+  .bar span { position:absolute; left:calc(100% + 12px); white-space:nowrap; font-size:20px; font-weight:700; }
+  .bar.lin { top:0; background:#cdd6dc; }
+  .bar.bin { top:34px; background:var(--orange); }
+  .map { left:160px; width:1280px; display:grid; grid-template-columns: 1fr 80px 1fr; align-items:center; font-size:34px; transform:translateY(16px); }
+  .map.on { transform:none; }
+  .map .a { color:var(--accent); font-weight:700; text-align:right; }
+  .map .arrow { text-align:center; color:var(--muted); }
+  .map .c { font-weight:700; }
+  #cap { position:absolute; left:0; right:0; bottom:0; height:120px; display:flex; align-items:center; padding:0 120px; background:rgba(255,255,255,.86); border-top:2px solid var(--line); font-size:30px; line-height:1.35; }
+  #cap b { color:var(--teal); margin-right:14px; font-family: ui-monospace, Menlo, monospace; font-size:18px; letter-spacing:1.5px; }
+  #replay { position:fixed; right:14px; bottom:14px; z-index:5; padding:8px 14px; border:0; border-radius:4px; background:var(--orange); color:#fff; font: 700 13px system-ui, sans-serif; box-shadow:0 4px 0 #d95d3c; cursor:pointer; display:none; }
+  #replay:active { transform:translateY(2px); box-shadow:0 2px 0 #d95d3c; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<button id="replay">↺ Replay</button>
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var replay = document.getElementById('replay');
+  var timers = [];
+
+  function fit() {
+    var s = Math.min(innerWidth / 1600, innerHeight / 900);
+    stage.style.transformOrigin = 'center center';
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+  addEventListener('resize', fit);
+
+  function el(cls, html, style) {
+    var d = document.createElement('div');
+    d.className = 'el ' + cls;
+    if (html != null) d.innerHTML = html;
+    if (style) for (var k in style) d.style[k] = style[k];
+    stage.appendChild(d);
+    return d;
+  }
+  function at(t, fn) { timers.push(setTimeout(fn, t * 1000)); }
+  function show(d) { requestAnimationFrame(function () { d.classList.add('on'); }); }
+  function hide(d) { d.classList.remove('on'); }
+  function caption(tag, text) {
+    var c = document.getElementById('cap');
+    c.innerHTML = '<b>' + tag + '</b>' + text;
+  }
+
+  var ratings = [912, 880, 851, 830, 802, 776, 742, 715, 690, 661];
+  var names = ['Batter A','Batter B','Batter C','Batter D','Batter E','Batter F','Batter G','Batter H','Batter I','Batter J'];
+
+  function run() {
+    timers.forEach(clearTimeout); timers = [];
+    stage.innerHTML = '';
+    replay.style.display = 'none';
+    var o1 = document.createElement('div'); o1.className = 'orbit'; o1.style.cssText += 'width:760px;height:280px;right:-160px;top:90px;'; stage.appendChild(o1);
+    var o2 = document.createElement('div'); o2.className = 'orbit'; o2.style.cssText += 'width:520px;height:190px;right:-40px;top:140px;opacity:.26'; stage.appendChild(o2);
+    var cap = document.createElement('div'); cap.id = 'cap'; stage.appendChild(cap);
+
+    /* Beat 0: title */
+    var eb = el('mono eyebrow', 'Wingtern Lens · Cricket');
+    var ti = el('title', 'How do you find one batter in a <em>sorted</em> table, fast?');
+    at(0.2, function () { show(eb); show(ti); caption('01', 'Binary search, explained through the Test batting rankings.'); });
+    at(3.6, function () { hide(ti); hide(eb); });
+
+    /* Beat 1: the table */
+    var rows = ratings.map(function (r, i) {
+      return el('row', '<span class="rk mono">No.' + (i + 1) + '</span><span class="nm">' + names[i] + '</span><span class="rt">' + r + '</span>', { top: (112 + i * 64) + 'px' });
+    });
+    var target = el('side', '<div class="mono lbl">Looking for</div><div class="big">742</div>', { top: '150px' });
+    at(4.2, function () {
+      caption('02', 'Ten batters, sorted from the highest rating to the lowest. We want the one rated 742.');
+      rows.forEach(function (r, i) { at(i * 0.12, function () { show(r); }); });
+    });
+    at(5.6, function () { show(target); });
+
+    /* Beat 2-4: halving */
+    var step = el('side', '', { top: '420px' });
+    var checks = el('side', '', { top: '560px' });
+    function setStep(html, n) {
+      step.innerHTML = html; checks.innerHTML = '<div class="mono lbl">Checks so far</div><div style="font-size:64px;font-weight:800">' + n + '</div>';
+      show(step); show(checks);
+    }
+    function mid(i) { rows.forEach(function (r) { r.classList.remove('mid'); }); rows[i].classList.add('mid'); }
+    function out(a, b) { for (var i = a; i <= b; i++) rows[i].classList.add('out'), rows[i].classList.remove('mid'); }
+
+    at(8.6, function () { caption('03', 'Skip the top. Open the middle of the table: No. 5, rated 802.'); mid(4); setStep('<span class="chip hot">802 &gt; 742</span>', 1); });
+    at(10.6, function () { caption('03', '802 is higher than 742, so our batter must be further down. Ranks 1 to 5 are out.'); out(0, 4); });
+    at(13.0, function () { caption('04', 'Middle of what is left: No. 8, rated 715. That is lower, so ranks 8 to 10 are out.'); mid(7); setStep('<span class="chip hot">715 &lt; 742</span>', 2); });
+    at(14.8, function () { out(7, 9); });
+    at(16.6, function () { caption('04', 'Two ranks remain. Check No. 6: 776 is still too high.'); mid(5); setStep('<span class="chip hot">776 &gt; 742</span>', 3); });
+    at(18.0, function () { out(5, 5); });
+    at(19.4, function () {
+      caption('05', 'One rank left: No. 7 is the batter rated 742. Four checks, where reading from the top takes seven.');
+      rows[6].classList.remove('mid'); rows[6].classList.add('found');
+      setStep('<span class="chip" style="border-color:#5bb49c;color:#0b7771">Found · No. 7</span>', 4);
+    });
+
+    /* Beat 5: scale comparison */
+    at(23.6, function () {
+      rows.forEach(hide); hide(target); hide(step); hide(checks);
+    });
+    var bars = el('bars', '');
+    var head = el('mono', 'Worst-case checks · read top-down vs binary search', { left: '120px', top: '150px', color: '#0b7771' });
+    var data = [[10, 4], [100, 7], [1000, 10], [1000000, 20]];
+    var maxW = 1000;
+    var rowEls = data.map(function (d, i) {
+      var r = document.createElement('div'); r.className = 'bar-row'; r.style.top = (i * 110) + 'px';
+      r.innerHTML = '<div class="n">' + d[0].toLocaleString() + '</div><div class="track"><div class="bar lin"><span></span></div><div class="bar bin"><span></span></div></div>';
+      bars.appendChild(r); return r;
+    });
+    at(24.4, function () {
+      caption('06', 'The bigger the table, the bigger the win. Each check halves the range: that is O(log n).');
+      show(head); show(bars);
+      rowEls.forEach(function (r, i) {
+        at(0.4 + i * 0.5, function () {
+          var d = data[i];
+          var lin = r.querySelector('.lin'), bin = r.querySelector('.bin');
+          lin.style.width = Math.min(maxW, 40 + Math.log10(d[0]) * 240) + 'px';
+          lin.querySelector('span').textContent = d[0].toLocaleString() + ' looks';
+          bin.style.width = (d[1] * 14) + 'px';
+          bin.querySelector('span').textContent = d[1] + ' looks';
+          bin.querySelector('span').style.color = '#f0724d';
+        });
+      });
+    });
+    at(29.6, function () {
+      head.innerHTML = 'Bar lengths for top-down are on a log scale; the real gap is even bigger';
+    });
+
+    /* Beat 6: mapping reveal */
+    at(31.6, function () { hide(bars); hide(head); });
+    var pairs = [['Rankings table', 'Sorted array'], ['Open the middle rank', 'mid = (low + high) / 2'], ['Ranks that are out', 'move low or high'], ['4 looks for 10 batters', 'O(log n)']];
+    var mh = el('title', 'Rankings table = <em>sorted array</em>', { top: '110px', fontSize: '60px' });
+    var maps = pairs.map(function (p, i) {
+      return el('map', '<div class="a">' + p[0] + '</div><div class="arrow">→</div><div class="c"' + (i === 3 ? ' style="color:#f0724d"' : '') + '>' + p[1] + '</div>', { top: (290 + i * 100) + 'px' });
+    });
+    at(32.4, function () {
+      caption('07', 'That is binary search. It works only because the table is sorted by the value you are looking for.');
+      show(mh); maps.forEach(function (m, i) { at(0.5 + i * 0.6, function () { show(m); }); });
+    });
+    at(39.5, function () { replay.style.display = 'block'; });
+  }
+
+  replay.addEventListener('click', run);
+  fit();
+  run();
+})();
+</script>
+</body>
+</html>

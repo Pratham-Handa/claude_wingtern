@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:">
+<meta charset="utf-8">
+<title>Conditional probability: will the team win, given they won the toss?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#f7f8f5; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:#19324a; }
+  svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .sans { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill:#19324a; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:15px; letter-spacing:1.5px; fill:#718293; }
+  .head { font-size:44px; font-weight:600; fill:#19324a; }
+  .em { font-family: Georgia, "Times New Roman", serif; font-style:italic; font-weight:400; fill:#f0724d; }
+  .big { font-weight:700; }
+  .muted { fill:#718293; }
+  .panel { opacity:0; transform:translateY(12px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+  .panel.on { opacity:1; transform:none; }
+  .row { opacity:0; transform:translateX(-14px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+  .panel.on .row { opacity:1; transform:none; }
+  #caption {
+    position:absolute; left:50%; bottom:3.2vh; transform:translateX(-50%);
+    max-width:66vw; min-width:30vw; box-sizing:border-box;
+    background:#ffffff; border:1px solid #dfe7e6; border-left:4px solid #f0724d;
+    padding:1.1vh 1.6vw; font-size:clamp(13px,1.4vw,22px); line-height:1.4; color:#19324a;
+    transition: opacity .25s cubic-bezier(.2,.7,.2,1);
+  }
+  #replay {
+    position:absolute; right:2vw; bottom:3.2vh;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:clamp(11px,0.9vw,14px); letter-spacing:1.5px; text-transform:uppercase;
+    color:#19324a; background:#f7f8f5; border:1.5px solid #19324a; border-radius:2px;
+    padding:.7em 1.1em; cursor:pointer; opacity:0; pointer-events:none;
+    transition: opacity .5s cubic-bezier(.2,.7,.2,1), background .2s, color .2s;
+  }
+  #replay.show { opacity:1; pointer-events:auto; }
+  #replay:hover { background:#19324a; color:#f7f8f5; }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" aria-label="Animated explainer of conditional probability">
+  <!-- top accent -->
+  <rect x="144" y="32" width="56" height="4" fill="#5bb49c"/>
+  <text x="1456" y="44" text-anchor="end" class="mono">HOME ODIS · 100 MATCHES</text>
+
+  <!-- headlines per beat -->
+  <g class="panel" data-show="1"><text x="144" y="78" class="mono">01 · THE RECORDS</text>
+    <text x="144" y="128" class="sans head">Will the team win, <tspan class="em">given</tspan> they won the toss?</text></g>
+  <g class="panel" data-show="2"><text x="144" y="78" class="mono">02 · THE BASE RATE</text>
+    <text x="144" y="128" class="sans head">The <tspan class="em">plain</tspan> chance of a win</text></g>
+  <g class="panel" data-show="3"><text x="144" y="78" class="mono">03 · THE TOSS</text>
+    <text x="144" y="128" class="sans head">Who won the <tspan class="em">toss?</tspan></text></g>
+  <g class="panel" data-show="4"><text x="144" y="78" class="mono">04 · THE CONDITION</text>
+    <text x="144" y="128" class="sans head"><tspan class="em">Shrink</tspan> the world to toss wins</text></g>
+  <g class="panel" data-show="5"><text x="144" y="78" class="mono">05 · COUNT INSIDE</text>
+    <text x="144" y="128" class="sans head">Count wins <tspan class="em">inside</tspan> the smaller pile</text></g>
+  <g class="panel" data-show="6"><text x="144" y="78" class="mono">06 · INDEPENDENCE CHECK</text>
+    <text x="144" y="128" class="sans head">Did the toss <tspan class="em">change</tspan> anything?</text></g>
+  <g class="panel" data-show="7"><text x="144" y="78" class="mono">07 · FLIP IT</text>
+    <text x="144" y="128" class="sans head"><tspan class="em">Reverse</tspan> the condition</text></g>
+  <g class="panel" data-show="8"><text x="144" y="78" class="mono">08 · THE MAPPING</text>
+    <text x="144" y="128" class="sans head">The real concept: <tspan class="em">conditional</tspan> probability</text></g>
+
+  <!-- divider -->
+  <g class="panel" data-show="1,2,3,4,5,6,7"><line x1="730" y1="190" x2="730" y2="680" stroke="#dfe7e6" stroke-width="2"/></g>
+
+  <!-- grid labels -->
+  <g class="panel" data-show="1,2"><text x="144" y="172" class="mono">ALL 100 HOME ODIS</text></g>
+  <g class="panel" data-show="3"><text x="144" y="172" class="mono">TOSS WON · 60</text><text x="484" y="172" class="mono">TOSS LOST · 40</text></g>
+  <g class="panel" data-show="4,5,6"><text x="144" y="172" class="mono" style="fill:#19324a">TOSS WON · 60</text>
+    <text x="496" y="210" class="mono">SET ASIDE · 40</text>
+    <rect x="490" y="220" width="122" height="300" fill="none" stroke="#dfe7e6" stroke-width="1.5" stroke-dasharray="5 5"/></g>
+  <g class="panel" data-show="7"><text x="144" y="172" class="mono" style="fill:#19324a">WON THE MATCH · 55</text>
+    <text x="496" y="210" class="mono">SET ASIDE · 45</text>
+    <rect x="490" y="220" width="152" height="270" fill="none" stroke="#dfe7e6" stroke-width="1.5" stroke-dasharray="5 5"/></g>
+
+  <!-- dots -->
+  <g id="dots"></g>
+
+  <!-- right panels -->
+  <g class="panel" data-show="1">
+    <text x="800" y="250" class="mono">THE RECORDS</text>
+    <text x="800" y="370" class="sans big" font-size="128">100</text>
+    <text x="800" y="420" class="sans muted" font-size="28">home ODIs on record</text>
+    <circle cx="816" cy="492" r="16" fill="#dfe7e6"/>
+    <text x="846" y="501" class="sans" font-size="24">= one match</text>
+  </g>
+  <g class="panel" data-show="2">
+    <text x="800" y="250" class="mono">WON THE MATCH</text>
+    <text x="800" y="370" class="sans big" font-size="128" style="fill:#5bb49c">55<tspan class="muted" font-size="56" font-weight="400"> / 100</tspan></text>
+    <text x="800" y="440" class="sans" font-size="34">P(win) = 55 / 100 = <tspan font-weight="700">0.55</tspan></text>
+    <circle cx="816" cy="512" r="16" fill="#5bb49c"/><text x="846" y="521" class="sans" font-size="24">won the match</text>
+    <circle cx="816" cy="562" r="16" fill="#dfe7e6"/><text x="846" y="571" class="sans" font-size="24">lost the match</text>
+  </g>
+  <g class="panel" data-show="3">
+    <text x="800" y="250" class="mono">THE TOSS</text>
+    <circle cx="816" cy="300" r="16" fill="#dfe7e6" stroke="#19324a" stroke-width="3"/>
+    <text x="846" y="309" class="sans" font-size="26">ring = won the toss · <tspan font-weight="700">60</tspan></text>
+    <circle cx="816" cy="354" r="16" fill="#dfe7e6"/>
+    <text x="846" y="363" class="sans" font-size="26">no ring = lost the toss · <tspan font-weight="700">40</tspan></text>
+    <text x="800" y="450" class="sans" font-size="34">P(toss won) = 60 / 100 = <tspan font-weight="700">0.60</tspan></text>
+    <text x="800" y="500" class="sans muted" font-size="22">Fill still shows the result: green = won the match.</text>
+  </g>
+  <g class="panel" data-show="4">
+    <text x="800" y="240" class="mono">THE BROADCASTER ASKS</text>
+    <text x="800" y="305" class="sans" font-size="46">P( win <tspan style="fill:#f0724d" font-weight="700">|</tspan> toss won )</text>
+    <text x="800" y="345" class="sans muted" font-size="22">The bar <tspan style="fill:#f0724d">|</tspan> reads “given”.</text>
+    <text x="800" y="420" class="mono">THE ONLY MATCHES THAT COUNT NOW</text>
+    <text x="800" y="525" class="sans big" font-size="110" style="fill:#0b7771">60</text>
+    <text x="940" y="510" class="sans" font-size="26">toss wins</text>
+    <text x="800" y="580" class="sans muted" font-size="22">The 40 lost-toss matches are set aside entirely.</text>
+  </g>
+  <g class="panel" data-show="5">
+    <text x="800" y="240" class="mono">INSIDE THE 60 TOSS WINS</text>
+    <text x="800" y="340" class="sans big" font-size="110" style="fill:#f0724d">39<tspan class="sans" font-size="38" font-weight="400" style="fill:#19324a"> / 60 won the match</tspan></text>
+    <text x="800" y="420" class="sans" font-size="32">P(A|B) = P(A and B) / P(B)</text>
+    <text x="800" y="472" class="sans" font-size="32">= 0.39 / 0.60   <tspan class="muted">(= 39 / 60)</tspan></text>
+    <text x="800" y="555" class="sans big" font-size="64" style="fill:#f0724d">= 0.65</text>
+  </g>
+  <g class="panel" data-show="6">
+    <text x="800" y="250" class="mono">P(WIN) · ALL 100 MATCHES</text>
+    <line x1="800" y1="298" x2="1400" y2="298" stroke="#dfe7e6" stroke-width="2"/>
+    <rect id="barA" x="800" y="280" width="0" height="36" fill="#5bb49c"/>
+    <text id="valA" x="812" y="308" class="sans big" font-size="24">0.55</text>
+    <text x="800" y="370" class="mono">P(WIN | TOSS WON) · 60 MATCHES</text>
+    <line x1="800" y1="418" x2="1400" y2="418" stroke="#dfe7e6" stroke-width="2"/>
+    <rect id="barB" x="800" y="400" width="0" height="36" fill="#f0724d"/>
+    <text id="valB" x="812" y="428" class="sans big" font-size="24">0.65</text>
+    <text x="1400" y="465" text-anchor="end" class="mono">SCALE 0 — 1</text>
+    <text x="800" y="530" class="sans big" font-size="44">0.65 ≠ 0.55</text>
+    <text x="800" y="574" class="sans" font-size="24">Knowing B changed the chance of A: not independent.</text>
+    <text x="800" y="610" class="sans muted" font-size="22">Independence would need P(A|B) = P(A).</text>
+  </g>
+  <g class="panel" data-show="7">
+    <text x="800" y="240" class="mono">NEW SAMPLE SPACE: THE 55 WINS</text>
+    <text x="800" y="340" class="sans big" font-size="110" style="fill:#f0724d">39<tspan class="sans" font-size="36" font-weight="400" style="fill:#19324a"> / 55 had won the toss</tspan></text>
+    <text x="800" y="420" class="sans" font-size="32">P(toss won | win) = 39 / 55 ≈ <tspan font-weight="700">0.71</tspan></text>
+    <text x="800" y="468" class="sans muted" font-size="32">P(win | toss won) = 39 / 60 = 0.65</text>
+    <text x="800" y="540" class="sans" font-size="26">Same 39 matches, different denominator.</text>
+    <text x="800" y="588" class="sans big" font-size="36" style="fill:#f0724d">P(B|A) ≠ P(A|B)</text>
+  </g>
+
+  <!-- final mapping -->
+  <g class="panel" data-show="8">
+    <text x="160" y="200" class="mono">IN CRICKET</text>
+    <text x="840" y="200" class="mono">IN PROBABILITY</text>
+    <line x1="160" y1="216" x2="1440" y2="216" stroke="#19324a" stroke-width="2"/>
+    <g class="row" style="transition-delay:.15s">
+      <text x="160" y="258" class="sans" font-size="25">All 100 home ODIs on record</text>
+      <text x="770" y="258" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="258" class="sans big" font-size="25" style="fill:#0b7771">Sample space</text>
+      <line x1="160" y1="280" x2="1440" y2="280" stroke="#dfe7e6" stroke-width="1.5"/></g>
+    <g class="row" style="transition-delay:.45s">
+      <text x="160" y="322" class="sans" font-size="25">Won the toss: 60 matches</text>
+      <text x="770" y="322" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="322" class="sans big" font-size="25" style="fill:#0b7771">Event B (the condition)</text>
+      <line x1="160" y1="344" x2="1440" y2="344" stroke="#dfe7e6" stroke-width="1.5"/></g>
+    <g class="row" style="transition-delay:.75s">
+      <text x="160" y="386" class="sans" font-size="25">Won the match</text>
+      <text x="770" y="386" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="386" class="sans big" font-size="25" style="fill:#0b7771">Event A</text>
+      <line x1="160" y1="408" x2="1440" y2="408" stroke="#dfe7e6" stroke-width="1.5"/></g>
+    <g class="row" style="transition-delay:1.05s">
+      <text x="160" y="450" class="sans" font-size="25">Won the toss AND won the match: 39 matches</text>
+      <text x="770" y="450" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="450" class="sans big" font-size="25" style="fill:#0b7771">A and B</text>
+      <line x1="160" y1="472" x2="1440" y2="472" stroke="#dfe7e6" stroke-width="1.5"/></g>
+    <g class="row" style="transition-delay:1.35s">
+      <text x="160" y="514" class="sans" font-size="25">Setting aside the 40 lost-toss matches entirely</text>
+      <text x="770" y="514" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="514" class="sans big" font-size="25" style="fill:#0b7771">Restricting to B</text>
+      <line x1="160" y1="536" x2="1440" y2="536" stroke="#dfe7e6" stroke-width="1.5"/></g>
+    <g class="row" style="transition-delay:1.65s">
+      <text x="160" y="578" class="sans" font-size="25">39 out of 60 toss wins = 0.65</text>
+      <text x="770" y="578" class="sans" font-size="26" style="fill:#f0724d">→</text>
+      <text x="840" y="578" class="sans big" font-size="25" style="fill:#0b7771">P(A|B) = P(A and B) / P(B)</text>
+      <line x1="160" y1="600" x2="1440" y2="600" stroke="#19324a" stroke-width="2"/></g>
+    <g class="row" style="transition-delay:2.2s">
+      <text x="800" y="660" text-anchor="middle" class="sans" font-size="26">Defined only when P(B) &gt; 0.  In general P(A|B) ≠ P(B|A).  If P(A|B) = P(A), A and B are independent.</text>
+    </g>
+  </g>
+</svg>
+
+<div id="caption"></div>
+<button id="replay" type="button">Replay</button>
+
+<script>
+(function(){
+  var NS = 'http://www.w3.org/2000/svg';
+  var COL = { g:'#dfe7e6', a:'#5bb49c', o:'#f0724d', i:'#19324a' };
+  var DUR = [5, 5, 5.5, 5.5, 6, 5.5, 6.5, 8];
+  var STARTS = []; var acc = 0;
+  for (var k=0;k<DUR.length;k++){ STARTS.push(acc); acc += DUR[k]; }
+  var TOTAL = acc;
+
+  var CAPTIONS = [
+    "An analyst pulls up the records of 100 home ODIs. Each dot is one match.",
+    "The team won 55 of them. With no other information, P(win) = 55 / 100 = 0.55.",
+    "Now mark the matches where the team won the toss: 60 of them. The other 40 were toss losses.",
+    "The broadcaster asks: what are the chances of winning, given we won the toss? So the 40 lost-toss matches are set aside entirely.",
+    "Inside the 60 toss wins, the team won 39. So P(A|B) = P(A and B) / P(B) = 0.39 / 0.60 = 0.65.",
+    "Knowing the toss moved the chance from 0.55 to 0.65. Because P(A|B) ≠ P(A), winning and winning the toss are not independent here.",
+    "Flip it: given a win, how often was the toss won? Now the 55 wins are the sample space: 39 / 55 ≈ 0.71, which is not 0.65.",
+    "Conditional probability: shrink the world to the outcomes where B is true, then measure how often A happens inside it."
+  ];
+
+  // easing cubic-bezier(.2,.7,.2,1)
+  function bezier(x1,y1,x2,y2){
+    function cx(t){ return 3*x1*t*(1-t)*(1-t) + 3*x2*t*t*(1-t) + t*t*t; }
+    function cy(t){ return 3*y1*t*(1-t)*(1-t) + 3*y2*t*t*(1-t) + t*t*t; }
+    function dx(t){ return 3*x1*(1-t)*(1-t) + 6*(x2-x1)*t*(1-t) + 3*(1-x2)*t*t; }
+    return function(x){
+      if (x<=0) return 0; if (x>=1) return 1;
+      var t = x;
+      for (var i=0;i<8;i++){ var d = dx(t); if (Math.abs(d)<1e-6) break; t -= (cx(t)-x)/d; t = Math.min(1,Math.max(0,t)); }
+      return cy(t);
+    };
+  }
+  var ease = bezier(.2,.7,.2,1);
+  function clamp(v){ return v<0?0:(v>1?1:v); }
+
+  function hex(h){ return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+  function mix(a,b,p){
+    var A=hex(a), B=hex(b);
+    return 'rgb(' + Math.round(A[0]+(B[0]-A[0])*p) + ',' + Math.round(A[1]+(B[1]-A[1])*p) + ',' + Math.round(A[2]+(B[2]-A[2])*p) + ')';
+  }
+
+  // seeded shuffle
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  var rnd = mulberry32(20240611);
+
+  // build 100 matches: 39 toss&win, 21 toss&loss, 16 lost-toss&win, 24 lost-toss&loss
+  var dots = [];
+  function add(n, toss, win){ for (var i=0;i<n;i++) dots.push({toss:toss, win:win, ci:i}); }
+  add(39,1,1); add(21,1,0); add(16,0,1); add(24,0,0);
+  var perm = []; for (var i=0;i<100;i++) perm.push(i);
+  for (var i=99;i>0;i--){ var j=Math.floor(rnd()*(i+1)); var t=perm[i]; perm[i]=perm[j]; perm[j]=t; }
+  var dotsG = document.getElementById('dots');
+  dots.forEach(function(d, idx){
+    d.g = perm[idx];
+    d.el = document.createElementNS(NS,'circle');
+    dotsG.appendChild(d.el);
+  });
+
+  function gridPos(d){ return { x:160+(d.g%10)*50, y:200+Math.floor(d.g/10)*50 }; }
+  function sortK(d){ return d.toss ? (d.win ? d.ci : 39+d.ci) : (d.win ? d.ci : 16+d.ci); }
+  function sortedPos(d){
+    var k = sortK(d);
+    return d.toss ? { x:160+(k%6)*50, y:200+Math.floor(k/6)*50 } : { x:500+(k%4)*50, y:200+Math.floor(k/4)*50 };
+  }
+  function tray40(d){ var k = sortK(d); return { x:506+(k%4)*30, y:240+Math.floor(k/4)*30 }; }
+  function winK(d){ return d.win ? (d.toss ? d.ci : 39+d.ci) : (d.toss ? d.ci : 21+d.ci); }
+  function winPos(d){
+    var k = winK(d);
+    return d.win ? { x:160+(k%7)*46, y:200+Math.floor(k/7)*46 } : { x:506+(k%5)*30, y:240+Math.floor(k/5)*30 };
+  }
+
+  function state(b, d){
+    var p, f, s;
+    switch(b){
+      case 0: p=gridPos(d); return {x:p.x,y:p.y,r:0,f:COL.g,s:COL.g,o:0,ord:d.g};
+      case 1: p=gridPos(d); return {x:p.x,y:p.y,r:16,f:COL.g,s:COL.g,o:1,ord:d.g};
+      case 2: p=gridPos(d); f=d.win?COL.a:COL.g; return {x:p.x,y:p.y,r:16,f:f,s:f,o:1,ord:d.g};
+      case 3: p=sortedPos(d); f=d.win?COL.a:COL.g; return {x:p.x,y:p.y,r:16,f:f,s:d.toss?COL.i:f,o:1,ord:sortK(d)+(d.toss?0:60)};
+      case 4:
+        f=d.win?COL.a:COL.g;
+        if (d.toss){ p=sortedPos(d); return {x:p.x,y:p.y,r:16,f:f,s:COL.i,o:1,ord:sortK(d)}; }
+        p=tray40(d); return {x:p.x,y:p.y,r:9,f:f,s:f,o:0.35,ord:sortK(d)};
+      case 5: case 6:
+        if (d.toss){ p=sortedPos(d); f=d.win?COL.o:COL.g; return {x:p.x,y:p.y,r:16,f:f,s:COL.i,o:1,ord:sortK(d)}; }
+        p=tray40(d); f=d.win?COL.a:COL.g; return {x:p.x,y:p.y,r:9,f:f,s:f,o:0.35,ord:sortK(d)};
+      case 7:
+        p=winPos(d);
+        if (d.win){ f=d.toss?COL.o:COL.a; return {x:p.x,y:p.y,r:15,f:f,s:d.toss?COL.i:f,o:1,ord:winK(d)}; }
+        return {x:p.x,y:p.y,r:9,f:COL.g,s:d.toss?COL.i:COL.g,o:0.35,ord:winK(d)};
+      case 8:
+        p=winPos(d); f=d.win?(d.toss?COL.o:COL.a):COL.g;
+        return {x:p.x,y:p.y,r:4,f:f,s:f,o:0,ord:winK(d)*0.2};
+    }
+  }
+
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  panels.forEach(function(pn){ pn._show = pn.getAttribute('data-show').split(',').map(Number); });
+  var captionEl = document.getElementById('caption');
+  var replayBtn = document.getElementById('replay');
+  var barA = document.getElementById('barA'), barB = document.getElementById('barB');
+  var valA = document.getElementById('valA'), valB = document.getElementById('valB');
+
+  var curBeat = 0, t0 = 0, capTimer = null, running = false;
+
+  function setBeat(b){
+    curBeat = b;
+    panels.forEach(function(pn){ pn.classList.toggle('on', pn._show.indexOf(b) !== -1); });
+    captionEl.style.opacity = 0;
+    clearTimeout(capTimer);
+    capTimer = setTimeout(function(){ captionEl.textContent = CAPTIONS[b-1]; captionEl.style.opacity = 1; }, 220);
+  }
+
+  function render(t){
+    var bi = 0;
+    while (bi < STARTS.length-1 && t >= STARTS[bi+1]) bi++;
+    var beat = bi+1, lt = t - STARTS[bi];
+    if (beat !== curBeat) setBeat(beat);
+    var stag = beat === 8 ? 0.004 : 0.01;
+    for (var i=0;i<dots.length;i++){
+      var d = dots[i];
+      var A = state(beat-1, d), Z = state(beat, d);
+      var p = ease(clamp((lt - Z.ord*stag)/0.9));
+      var r = A.r + (Z.r-A.r)*p;
+      var el = d.el;
+      el.setAttribute('cx', (A.x + (Z.x-A.x)*p).toFixed(2));
+      el.setAttribute('cy', (A.y + (Z.y-A.y)*p).toFixed(2));
+      el.setAttribute('r', Math.max(0,r).toFixed(2));
+      el.setAttribute('fill', mix(A.f, Z.f, p));
+      el.setAttribute('stroke', mix(A.s, Z.s, p));
+      el.setAttribute('stroke-width', (Math.max(0,r)/5.4).toFixed(2));
+      el.setAttribute('opacity', (A.o + (Z.o-A.o)*p).toFixed(3));
+    }
+    // bars in beat 6
+    var bp = beat === 6 ? ease(clamp((lt-0.4)/1.3)) : (beat > 6 ? 1 : 0);
+    var wA = 600*0.55*bp, wB = 600*0.65*ease(clamp(((beat===6?lt:9)-0.8)/1.3));
+    if (beat < 6) wB = 0;
+    barA.setAttribute('width', wA.toFixed(1)); barB.setAttribute('width', wB.toFixed(1));
+    valA.setAttribute('x', (812 + wA).toFixed(1)); valB.setAttribute('x', (812 + wB).toFixed(1));
+  }
+
+  function frame(now){
+    if (!running) return;
+    var t = (now - t0)/1000;
+    if (t >= TOTAL){
+      render(TOTAL - 0.001);
+      running = false;
+      replayBtn.classList.add('show');
+      return;
+    }
+    render(t);
+    requestAnimationFrame(frame);
+  }
+
+  function start(){
+    replayBtn.classList.remove('show');
+    curBeat = 0;
+    panels.forEach(function(pn){ pn.classList.remove('on'); });
+    // force reflow so transitions replay
+    void document.body.offsetWidth;
+    t0 = performance.now();
+    running = true;
+    requestAnimationFrame(frame);
+  }
+
+  replayBtn.addEventListener('click', start);
+  start();
+})();
+</script>
+</body>
+</html>

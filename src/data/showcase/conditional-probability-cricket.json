@@ -1,0 +1,147 @@
+{
+  "concept_title": "Conditional probability",
+  "chosen_interest": "cricket",
+  "interest_reason": "Cricket scorecards let you count outcomes inside a filtered subset of balls or matches, which is exactly what conditioning does: shrink the sample space, then count.",
+  "concept_explanation": "Conditional probability is the probability that event A happens given that event B has happened, written P(A|B). Knowing B occurred shrinks the set of possible outcomes to only those where B is true, and you measure how often A happens inside that smaller set. The formula is P(A|B) = P(A and B) / P(B), defined only when P(B) > 0. In general P(A|B) is not equal to P(B|A), and if P(A|B) equals P(A), the events are independent.",
+  "analogy_title": "Will the team win, given they won the toss?",
+  "analogy_narrative": "An analyst has records of 100 home ODIs. The team won 55 of them, so a plain win probability is 0.55. But a broadcaster asks a sharper question: what are the chances of winning given we have won the toss? The analyst ignores the 40 matches where the toss was lost and looks only at the 60 toss wins. Of those 60, the team went on to win 39. So inside that filtered pile, the win rate is 39 out of 60, or 0.65.",
+  "mapping": [
+    {
+      "concept": "Sample space",
+      "analogy": "All 100 home ODIs on record"
+    },
+    {
+      "concept": "Event B (the condition)",
+      "analogy": "Won the toss: 60 matches"
+    },
+    {
+      "concept": "Event A",
+      "analogy": "Won the match"
+    },
+    {
+      "concept": "A and B",
+      "analogy": "Won the toss AND won the match: 39 matches"
+    },
+    {
+      "concept": "Restricting to B",
+      "analogy": "Setting aside the 40 lost-toss matches entirely"
+    },
+    {
+      "concept": "P(A|B) = P(A and B) / P(B)",
+      "analogy": "39 out of 60 toss wins = 0.65"
+    }
+  ],
+  "visual": {
+    "type": "steps",
+    "caption": "Shrinking the sample space from all matches to toss wins",
+    "mermaid": "",
+    "steps": [
+      {
+        "label": "All matches",
+        "items": [
+          "Toss W, Match W: 39",
+          "Toss W, Match L: 21",
+          "Toss L, Match W: 16",
+          "Toss L, Match L: 24"
+        ],
+        "highlight": [
+          0,
+          2
+        ],
+        "dim": [],
+        "metric_label": "P(win)",
+        "metric_value": 0.55,
+        "note": "Across all 100 matches, 39 + 16 = 55 wins, so P(win) = 0.55."
+      },
+      {
+        "label": "Condition on toss win",
+        "items": [
+          "Toss W, Match W: 39",
+          "Toss W, Match L: 21",
+          "Toss L, Match W: 16",
+          "Toss L, Match L: 24"
+        ],
+        "highlight": [
+          0,
+          1
+        ],
+        "dim": [
+          2,
+          3
+        ],
+        "metric_label": "Matches in play",
+        "metric_value": 60,
+        "note": "Given the toss was won, only these 60 matches count. The other 40 drop out."
+      },
+      {
+        "label": "Count wins inside",
+        "items": [
+          "Toss W, Match W: 39",
+          "Toss W, Match L: 21",
+          "Toss L, Match W: 16",
+          "Toss L, Match L: 24"
+        ],
+        "highlight": [
+          0
+        ],
+        "dim": [
+          2,
+          3
+        ],
+        "metric_label": "P(win | toss won)",
+        "metric_value": 0.65,
+        "note": "39 of 60 toss wins became match wins, so P(win | toss won) = 0.65."
+      }
+    ],
+    "comparison_columns": [],
+    "comparison_rows": []
+  },
+  "worked_example": [
+    {
+      "step": "Total 100 matches. Toss won: 60. Toss won and match won: 39.",
+      "concept_link": "These give P(B) = 0.60 and P(A and B) = 0.39."
+    },
+    {
+      "step": "P(win | toss won) = 0.39 / 0.60 = 0.65",
+      "concept_link": "Apply P(A|B) = P(A and B) / P(B)."
+    },
+    {
+      "step": "Compare with P(win) = 0.55. Since 0.65 is not 0.55, winning and winning the toss are not independent here.",
+      "concept_link": "Independence would require P(A|B) = P(A)."
+    },
+    {
+      "step": "Reverse it: P(toss won | win) = 39 / 55 ≈ 0.71",
+      "concept_link": "P(B|A) uses A as the new sample space, so it differs from P(A|B)."
+    }
+  ],
+  "analogy_limits": [
+    "Past match counts give an estimate of probability, not the true probability. With only 60 matches the 0.65 has real uncertainty.",
+    "A higher win rate after winning the toss does not prove the toss causes wins. Conditional probability measures association, not cause.",
+    "Conditions like pitch, opposition and weather change over time, while the math assumes the outcomes come from one fixed process."
+  ],
+  "check_question": "In 200 F1 races, a driver started on pole 50 times and won 30 of those. They won 60 races in total. What is P(pole | win)?",
+  "check_options": [
+    {
+      "text": "0.5",
+      "correct": true,
+      "why": "Restrict to the 60 wins: 30 of them came from pole, so 30/60 = 0.5."
+    },
+    {
+      "text": "0.6",
+      "correct": false,
+      "why": "That is P(win | pole) = 30/50. Swapping the condition changes the answer."
+    },
+    {
+      "text": "0.3",
+      "correct": false,
+      "why": "That is P(win) = 60/200, which ignores the condition entirely."
+    },
+    {
+      "text": "0.15",
+      "correct": false,
+      "why": "That is P(pole and win) = 30/200, the joint probability, before dividing by P(win)."
+    }
+  ],
+  "next_concept": "Bayes' theorem",
+  "is_finance": false
+}

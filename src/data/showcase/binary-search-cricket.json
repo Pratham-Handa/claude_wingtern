@@ -1,0 +1,50 @@
+{
+  "concept_title": "Binary search",
+  "chosen_interest": "cricket",
+  "interest_reason": "A batting rankings table is already sorted by rating points, which is exactly the precondition binary search needs.",
+  "concept_explanation": "Binary search finds a target value in a sorted list by repeatedly checking the middle element. If the middle isn't the target, the sorted order tells you which half cannot contain it, so you discard that half and repeat on the rest. Each check halves the search range, so a list of n items needs at most about log2(n) + 1 checks, which is O(log n) time. It only works when the list is sorted by the value you're searching for.",
+  "analogy_title": "Finding a rating in the Test batting rankings",
+  "analogy_narrative": "A commentator needs to know where a batter rated 742 points sits in the Test rankings, and the table is ordered from highest rating to lowest. Instead of reading from No. 1 downwards, they open the table in the middle and see a rating of 802. Because 802 is higher than 742, everyone from the top down to that row is out of the question, and the batter must be further down. They jump to the middle of what's left, compare again and throw away another half. Within a few looks they land on the exact row.",
+  "mapping": [
+    { "concept": "Sorted array", "analogy": "Rankings table ordered by rating points" },
+    { "concept": "Target value", "analogy": "The rating you're looking for (742)" },
+    { "concept": "low / high pointers", "analogy": "The block of ranks still in play" },
+    { "concept": "Check the middle element", "analogy": "Open the table at the middle rank of that block" },
+    { "concept": "Discard half the range", "analogy": "\"802 is higher than 742, so our batter is further down\"" },
+    { "concept": "O(log n) time", "analogy": "100 batters need at most 7 looks; 1,000 need at most 10" }
+  ],
+  "visual": {
+    "type": "steps",
+    "caption": "Searching for 742 in ratings sorted high to low",
+    "mermaid": "",
+    "steps": [
+      { "label": "Look at the middle (rank 5)", "items": ["912", "880", "851", "830", "802", "776", "742", "715", "690", "661"], "highlight": [4], "dim": [], "metric_label": "Checks", "metric_value": 1, "note": "802 is higher than 742, so the batter is ranked below No. 5. Discard ranks 1 to 5." },
+      { "label": "Middle of what's left (rank 8)", "items": ["912", "880", "851", "830", "802", "776", "742", "715", "690", "661"], "highlight": [7], "dim": [0, 1, 2, 3, 4], "metric_label": "Checks", "metric_value": 2, "note": "715 is lower than 742, so the batter is ranked above No. 8. Discard ranks 8 to 10." },
+      { "label": "Check rank 6", "items": ["912", "880", "851", "830", "802", "776", "742", "715", "690", "661"], "highlight": [5], "dim": [0, 1, 2, 3, 4, 7, 8, 9], "metric_label": "Checks", "metric_value": 3, "note": "776 is higher than 742. Discard rank 6, so only rank 7 is left." },
+      { "label": "Found at rank 7", "items": ["912", "880", "851", "830", "802", "776", "742", "715", "690", "661"], "highlight": [6], "dim": [0, 1, 2, 3, 4, 5, 7, 8, 9], "metric_label": "Checks", "metric_value": 4, "note": "742 found in 4 checks. Reading top to bottom would have taken 7." }
+    ],
+    "comparison_columns": [],
+    "comparison_rows": []
+  },
+  "worked_example": [
+    { "step": "ratings = [912, 880, 851, 830, 802, 776, 742, 715, 690, 661], target = 742, low = 0, high = 9", "concept_link": "The list is sorted (descending), and low/high mark the whole list as in play." },
+    { "step": "mid = (0 + 9) // 2 = 4, ratings[4] = 802. 802 > 742, so set low = 5", "concept_link": "In a descending list, a bigger middle value means the target is to the right, so the left half is discarded." },
+    { "step": "mid = (5 + 9) // 2 = 7, ratings[7] = 715. 715 < 742, so set high = 6", "concept_link": "A smaller middle value means the target is to the left, so the right half is discarded." },
+    { "step": "mid = (5 + 6) // 2 = 5, ratings[5] = 776. 776 > 742, so set low = 6", "concept_link": "The range shrinks again, to a single item." },
+    { "step": "mid = 6, ratings[6] = 742. Found at index 6 (rank 7) after 4 checks", "concept_link": "10 items need at most floor(log2(10)) + 1 = 4 checks." }
+  ],
+  "analogy_limits": [
+    "The table must be sorted by the value you search for. A squad list in alphabetical order can't be binary-searched by rating.",
+    "Real rankings have ties and change every week. Binary search assumes the list doesn't change mid-search, and ties need a rule for which match to return.",
+    "A human might guess that 742 is about mid-table and jump straight there. Binary search always takes the exact middle; guessing by value is a different algorithm, interpolation search."
+  ],
+  "check_question": "A rankings list has 1,000 batters sorted by rating. At most, about how many checks does binary search need to find a given rating?",
+  "check_options": [
+    { "text": "About 10", "correct": true, "why": "Each check halves the range: 1000, 500, 250 and so on down to 1 takes about 10 halvings, because log2(1000) is about 10." },
+    { "text": "About 500", "correct": false, "why": "That's the average for reading the list from the top (linear search), not binary search." },
+    { "text": "1,000", "correct": false, "why": "That's the worst case for linear search, which checks every item." },
+    { "text": "About 32", "correct": false, "why": "That's the square root of 1,000. Binary search grows with log n, which is much smaller." }
+  ],
+  "next_concept": "Binary search trees",
+  "is_finance": false
+}

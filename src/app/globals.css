@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+/* Wingtern design tokens (DESIGN.md §10/§11), translated to Tailwind v4 */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+  --color-ink: #19324a;
+  --color-cream: #f7f8f5;
+  --color-orange: #f0724d;
+  --color-orange-bevel: #d95d3c;
+  --color-orange-sparkle: #fff2eb;
+  --color-teal: #0b7771;
+  --color-teal-light: #e5f2ee;
+  --color-muted: #718293;
+  --color-line: #dfe7e6;
+  --color-hero: #e6f0ec;
+  --color-hero-copy: #5e7380;
+  --color-hero-gold: #e5a747;
+  --color-focus: #e9af48;
+  --color-error: #b14643;
+  --color-ai-bg: #fff8ec;
+  --color-ai-border: #f0d0a6;
+  --color-ai-text: #9c5e2a;
+  --color-ai-tag: #f6e3c4;
+  --color-ai-secondary: #897966;
+  --color-ai-meta: #9c876e;
+  --color-ai-divider: #ead5b5;
+  --color-active: #54aa8c;
+  --color-active-bg: #eff7f4;
+  --color-active-text: #497378;
+  --color-flagged: #e26b50;
+  --color-flagged-bg: #fff0ec;
+  --color-flagged-text: #b04d46;
+  --color-field: #d5e0df;
+
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-serif: var(--font-playfair), Georgia, serif;
+
+  --radius-brand: 9px 9px 9px 2px;
+  --radius-hero: 8px;
+  --radius-card: 6px;
+  --radius-panel: 5px;
+  --radius-button: 4px;
+  --radius-input: 3px;
+
+  --shadow-button: 0 4px 0 #d95d3c;
+  --shadow-button-press: 0 2px 0 #d95d3c;
+  --shadow-card-hover: 0 10px 25px rgba(25, 50, 74, 0.08);
+  --shadow-focus: 0 0 0 3px rgba(11, 119, 113, 0.1);
+
+  --breakpoint-sm: 700px;
+}
+
+:root {
+  --ink: #19324a;
+  --cream: #f7f8f5;
+  --orange: #f0724d;
+  --teal: #0b7771;
+  --muted: #718293;
+  --line: #dfe7e6;
+  --focus-ring: #e9af48;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--cream); }
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--ink);
+  background: var(--cream);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+/* The search wrapper shows the teal focus ring instead (DESIGN.md §8.6) */
+.search-wrap input:focus-visible { outline: none; }
+
+/* ---------- Components (DESIGN.md §8) ---------- */
+@layer components {
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 3px;
+    color: #497378;
+    background: #eff7f4;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 18px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--orange);
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 4px 0 #d95d3c;
+    white-space: nowrap;
+  }
+  .primary-button:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #d95d3c;
+  }
+  .primary-button:disabled { opacity: 0.55; }
+  .action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 11px 14px;
+    border: 1px solid #bbd0cd;
+    border-radius: 4px;
+    color: var(--teal);
+    background: white;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+  }
+  .action-button.selected {
+    border-color: var(--teal);
+    background: #e5f2ee;
+  }
+  .action-button:disabled { opacity: 0.55; }
+  .card {
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-top: 3px solid transparent;
+    border-radius: 6px;
+    background: white;
+  }
+  .card-lift { transition: transform 0.18s, box-shadow 0.18s; }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(25, 50, 74, 0.08);
+  }
+  .ai-panel {
+    padding: 22px;
+    border: 1px solid #f0d0a6;
+    border-radius: 5px;
+    background: #fff8ec;
+  }
+  .ai-tag {
+    display: inline-flex;
+    padding: 3px 7px;
+    border-radius: 3px;
+    background: #f6e3c4;
+    color: #9c5e2a;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 0 6px 0 14px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+  }
+  .search-wrap:focus-within {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(11, 119, 113, 0.1);
+  }
+  .search-wrap input {
+    width: 100%;
+    height: 54px;
+    border: 0;
+    outline: 0;
+    color: var(--ink);
+    background: transparent;
+    font-size: 15px;
+  }
+  .field-input {
+    width: 100%;
+    border: 1px solid #d5e0df;
+    border-radius: 3px;
+    padding: 10px 12px;
+    color: var(--ink);
+    background: white;
+    font-size: 13px;
+  }
+  .field-input:focus { border-color: var(--teal); outline: none; }
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #e6f0ec;
+  }
+  .empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    background: white;
+    border: 1px dashed #cbd8d6;
+    border-radius: 6px;
+  }
+  .skeleton {
+    background: #eef2f1;
+    border-radius: 3px;
+  }
+}
+
+/* ---------- Hero orbits (DESIGN.md §8.8) ---------- */
+.orbit {
+  position: absolute;
+  border: 1px solid var(--teal);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ---------- Animation stage (PRD §7B: motion only inside the stage) ---------- */
+.stage-el {
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.45s ease;
+}
+.stage-shape {
+  transition: fill 0.35s ease, stroke 0.35s ease;
+}
+.stage-arrow {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.45s ease;
+}
+@keyframes stage-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.stage-pulse {
+  animation: stage-pulse 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-el, .stage-shape, .stage-arrow { transition: none; }
+  .stage-pulse { animation: none; }
+}
+
+/* Mermaid output inherits the brand font */
+.mermaid-host svg { max-width: 100%; height: auto; font-family: var(--font-sans) !important; }

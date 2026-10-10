@@ -1,0 +1,52 @@
+{
+  "concept_title": "Compound interest",
+  "chosen_interest": "gaming",
+  "interest_reason": "Reinvesting resources into generators in a strategy or idle game is literally interest earning interest.",
+  "concept_explanation": "Compound interest means interest is calculated on the original amount plus all the interest already earned. Each period the balance is multiplied by (1 + r), so after t periods the amount is A = P(1 + r)^t. Growth is slow at first and then speeds up, because each period's interest is larger than the last. Simple interest pays only on the original principal, so it grows by the same fixed amount every period.",
+  "analogy_title": "The gold mine snowball",
+  "analogy_narrative": "You start a strategy game with 1,000 gold. Every 100 gold buys a mine that produces 10 gold per round, so your gold earns 10% each round. Option one: bank the gold the mines make. Option two: spend it immediately on more mines. In the first rounds the two look almost the same. But in option two each round's new gold builds new mines, which produce more gold, which builds more mines. By round ten the reinvesting player has about 2,594 gold and the banking player has 2,000, and the gap keeps widening every round after that.",
+  "mapping": [
+    { "concept": "Principal (P)", "analogy": "Your starting 1,000 gold" },
+    { "concept": "Interest rate (r)", "analogy": "Each mine returns 10% of its cost per round" },
+    { "concept": "Compounding period", "analogy": "One game round" },
+    { "concept": "Reinvesting interest", "analogy": "Spending new gold on more mines straight away" },
+    { "concept": "Simple interest", "analogy": "Banking the mines' output instead of building more" },
+    { "concept": "Exponential growth", "analogy": "The late-game snowball" }
+  ],
+  "visual": {
+    "type": "steps",
+    "caption": "1,000 gold growing at 10% per round, with every coin reinvested",
+    "mermaid": "",
+    "steps": [
+      { "label": "Round 0", "items": ["1000"], "highlight": [0], "dim": [], "metric_label": "Gold", "metric_value": 1000, "note": "You start with 10 mines' worth of gold." },
+      { "label": "Round 1", "items": ["1000", "1100"], "highlight": [1], "dim": [], "metric_label": "Gold", "metric_value": 1100, "note": "+100 gold: 10% of 1,000." },
+      { "label": "Round 2", "items": ["1000", "1100", "1210"], "highlight": [2], "dim": [], "metric_label": "Gold", "metric_value": 1210, "note": "+110 gold. The extra 10 comes from the mine you built with round 1's gold." },
+      { "label": "Round 3", "items": ["1000", "1100", "1210", "1331"], "highlight": [3], "dim": [], "metric_label": "Gold", "metric_value": 1331, "note": "+121 gold. Each round's gain is bigger than the last." },
+      { "label": "Round 5", "items": ["1000", "1100", "1210", "1331", "1464", "1611"], "highlight": [5], "dim": [], "metric_label": "Gold", "metric_value": 1611, "note": "+146 gold this round, versus a flat +100 for the banking player." },
+      { "label": "Round 10", "items": ["1000", "1100", "1210", "1331", "1464", "1611", "1772", "1949", "2144", "2594"], "highlight": [9], "dim": [], "metric_label": "Gold", "metric_value": 2594, "note": "About 2,594 gold, versus 2,000 from simple interest. Round 9 (2,358) is skipped to fit the row." }
+    ],
+    "comparison_columns": [],
+    "comparison_rows": []
+  },
+  "worked_example": [
+    { "step": "P = 1,000, r = 10% = 0.10, compounded once per round", "concept_link": "These are the inputs to A = P(1 + r)^t." },
+    { "step": "After round 1: 1,000 × 1.10 = 1,100", "concept_link": "The first period is identical to simple interest." },
+    { "step": "After round 2: 1,100 × 1.10 = 1,210 (simple interest would give 1,200)", "concept_link": "The extra 10 is interest earned on interest." },
+    { "step": "After round 10: 1,000 × 1.10^10 ≈ 2,593.74", "concept_link": "The exponent t is why growth accelerates over time." },
+    { "step": "Simple interest after 10 rounds: 1,000 + 10 × 100 = 2,000", "concept_link": "Linear (simple) versus exponential (compound): the gap widens every period." }
+  ],
+  "analogy_limits": [
+    "Game formulas are guaranteed. Real investment returns go up and down, and only savings accounts or fixed deposits come close to a fixed rate.",
+    "Real rates are usually far below 10% per period, and inflation eats into real growth. Games ignore both.",
+    "Games often cap upgrades or add diminishing returns. Compounding in finance has no cap, but compounding frequency (monthly or yearly) and fees change the result."
+  ],
+  "check_question": "You put ₹10,000 in a deposit paying 5% compound interest per year. How much do you have after 2 years?",
+  "check_options": [
+    { "text": "₹11,025", "correct": true, "why": "10,000 × 1.05 × 1.05 = 11,025. Year two earns 5% on 10,500, not just on 10,000." },
+    { "text": "₹11,000", "correct": false, "why": "That's simple interest: 500 per year on the original amount only." },
+    { "text": "₹10,500", "correct": false, "why": "That's the balance after only one year." },
+    { "text": "₹12,000", "correct": false, "why": "That would need 10% per year of simple interest." }
+  ],
+  "next_concept": "Inflation and real returns",
+  "is_finance": true
+}

@@ -1,0 +1,81 @@
+{
+  "title": "Compound interest, told through gold mines",
+  "scenes": [
+    {
+      "title": "Start with 1,000 gold",
+      "caption": "Every 100 gold buys a mine that makes 10 gold a round, so your gold earns 10% each round.",
+      "duration": 6,
+      "elements": [
+        { "id": "coin", "kind": "icon", "icon": "coin", "x": 50, "y": 30, "color": "gold", "enter_at": 0.3 },
+        { "id": "g", "kind": "counter", "x": 50, "y": 58, "text": "gold", "color": "ink", "value_from": 0, "value_to": 1000, "enter_at": 0.8 },
+        { "id": "r", "kind": "label", "x": 50, "y": 82, "text": "10% per round", "color": "accent", "enter_at": 2.6, "highlight_at": 3.4 }
+      ]
+    },
+    {
+      "title": "Bank it or build with it",
+      "caption": "One player banks each round's gold. The other spends it on more mines straight away. Early on they look almost the same.",
+      "duration": 8,
+      "elements": [
+        { "id": "lt", "kind": "label", "x": 28, "y": 12, "text": "Bank the gold", "color": "muted", "enter_at": 0.2 },
+        { "id": "rt", "kind": "label", "x": 72, "y": 12, "text": "Build more mines", "color": "accent", "enter_at": 0.5 },
+        { "id": "b1", "kind": "bar", "x": 14, "y": 82, "w": 5, "h": 55, "text": "R1", "color": "muted", "value_from": 0, "value_to": 1100, "enter_at": 1.0 },
+        { "id": "b2", "kind": "bar", "x": 21, "y": 82, "w": 5, "h": 55, "text": "R2", "color": "muted", "value_from": 0, "value_to": 1200, "enter_at": 1.5 },
+        { "id": "b3", "kind": "bar", "x": 28, "y": 82, "w": 5, "h": 55, "text": "R3", "color": "muted", "value_from": 0, "value_to": 1300, "enter_at": 2.0 },
+        { "id": "b4", "kind": "bar", "x": 35, "y": 82, "w": 5, "h": 55, "text": "R4", "color": "muted", "value_from": 0, "value_to": 1400, "enter_at": 2.5 },
+        { "id": "b5", "kind": "bar", "x": 42, "y": 82, "w": 5, "h": 55, "text": "R5", "color": "muted", "value_from": 0, "value_to": 1500, "enter_at": 3.0 },
+        { "id": "c1", "kind": "bar", "x": 58, "y": 82, "w": 5, "h": 55, "text": "R1", "color": "accent", "value_from": 0, "value_to": 1100, "enter_at": 1.0 },
+        { "id": "c2", "kind": "bar", "x": 65, "y": 82, "w": 5, "h": 55, "text": "R2", "color": "accent", "value_from": 0, "value_to": 1210, "enter_at": 1.5 },
+        { "id": "c3", "kind": "bar", "x": 72, "y": 82, "w": 5, "h": 55, "text": "R3", "color": "accent", "value_from": 0, "value_to": 1331, "enter_at": 2.0 },
+        { "id": "c4", "kind": "bar", "x": 79, "y": 82, "w": 5, "h": 55, "text": "R4", "color": "accent", "value_from": 0, "value_to": 1464, "enter_at": 2.5 },
+        { "id": "c5", "kind": "bar", "x": 86, "y": 82, "w": 5, "h": 55, "text": "R5", "color": "accent", "value_from": 0, "value_to": 1611, "enter_at": 3.0, "highlight_at": 5.0 }
+      ]
+    },
+    {
+      "title": "Why it snowballs",
+      "caption": "Each round's new gold builds mines that also earn, so every round's gain is bigger than the last.",
+      "duration": 7,
+      "elements": [
+        { "id": "g1", "kind": "box", "x": 14, "y": 44, "w": 12, "h": 14, "text": "+100", "color": "accent", "enter_at": 0.4 },
+        { "id": "g2", "kind": "box", "x": 32, "y": 44, "w": 12, "h": 14, "text": "+110", "color": "accent", "enter_at": 1.0 },
+        { "id": "g3", "kind": "box", "x": 50, "y": 44, "w": 12, "h": 14, "text": "+121", "color": "accent", "enter_at": 1.6 },
+        { "id": "g4", "kind": "box", "x": 68, "y": 44, "w": 12, "h": 14, "text": "+133", "color": "accent", "enter_at": 2.2 },
+        { "id": "g5", "kind": "box", "x": 86, "y": 44, "w": 12, "h": 14, "text": "+146", "color": "accent", "enter_at": 2.8, "highlight_at": 4.0 },
+        { "id": "a1", "kind": "arrow", "from_id": "g1", "to_id": "g2", "color": "muted", "enter_at": 0.8 },
+        { "id": "a2", "kind": "arrow", "from_id": "g2", "to_id": "g3", "color": "muted", "enter_at": 1.4 },
+        { "id": "a3", "kind": "arrow", "from_id": "g3", "to_id": "g4", "color": "muted", "enter_at": 2.0 },
+        { "id": "a4", "kind": "arrow", "from_id": "g4", "to_id": "g5", "color": "muted", "enter_at": 2.6 },
+        { "id": "n", "kind": "label", "x": 50, "y": 72, "text": "Interest earned on interest", "color": "ink", "enter_at": 3.6 }
+      ]
+    },
+    {
+      "title": "Ten rounds later",
+      "caption": "Banking gives 2,000 gold. Reinvesting gives about 2,594, and the gap keeps growing every round.",
+      "duration": 8,
+      "elements": [
+        { "id": "s", "kind": "bar", "x": 35, "y": 80, "w": 14, "h": 58, "text": "simple", "color": "muted", "value_from": 1000, "value_to": 2000, "enter_at": 0.5 },
+        { "id": "c", "kind": "bar", "x": 65, "y": 80, "w": 14, "h": 58, "text": "compound", "color": "accent", "value_from": 1000, "value_to": 2594, "enter_at": 1.2, "highlight_at": 3.6 },
+        { "id": "d", "kind": "label", "x": 50, "y": 10, "text": "+594 gold from interest on interest", "color": "orange", "enter_at": 3.8 }
+      ]
+    },
+    {
+      "title": "The real concept",
+      "caption": "That's compound interest: A = P(1 + r)^t. The exponent is why growth speeds up over time.",
+      "duration": 9,
+      "elements": [
+        { "id": "t", "kind": "label", "x": 50, "y": 12, "text": "A = P (1 + r) ^ t", "color": "ink", "h": 9, "enter_at": 0.2 },
+        { "id": "l1", "kind": "label", "x": 24, "y": 32, "text": "Starting gold", "color": "accent", "enter_at": 0.8 },
+        { "id": "c1", "kind": "label", "x": 76, "y": 32, "text": "Principal P", "color": "ink", "enter_at": 1.4 },
+        { "id": "a1", "kind": "arrow", "from_id": "l1", "to_id": "c1", "color": "muted", "enter_at": 1.1 },
+        { "id": "l2", "kind": "label", "x": 24, "y": 47, "text": "10% per round", "color": "accent", "enter_at": 2.2 },
+        { "id": "c2", "kind": "label", "x": 76, "y": 47, "text": "Rate r", "color": "ink", "enter_at": 2.8 },
+        { "id": "a2", "kind": "arrow", "from_id": "l2", "to_id": "c2", "color": "muted", "enter_at": 2.5 },
+        { "id": "l3", "kind": "label", "x": 24, "y": 62, "text": "Rounds played", "color": "accent", "enter_at": 3.6 },
+        { "id": "c3", "kind": "label", "x": 76, "y": 62, "text": "Periods t", "color": "ink", "enter_at": 4.2 },
+        { "id": "a3", "kind": "arrow", "from_id": "l3", "to_id": "c3", "color": "muted", "enter_at": 3.9 },
+        { "id": "l4", "kind": "label", "x": 24, "y": 77, "text": "Building more mines", "color": "accent", "enter_at": 5.0 },
+        { "id": "c4", "kind": "label", "x": 76, "y": 77, "text": "Compounding", "color": "orange", "enter_at": 5.6, "highlight_at": 6.2 },
+        { "id": "a4", "kind": "arrow", "from_id": "l4", "to_id": "c4", "color": "muted", "enter_at": 5.3 }
+      ]
+    }
+  ]
+}

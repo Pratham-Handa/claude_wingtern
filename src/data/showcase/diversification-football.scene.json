@@ -1,0 +1,90 @@
+{
+  "title": "Diversification, told through fantasy football",
+  "scenes": [
+    {
+      "title": "A one-club team",
+      "caption": "You fill your whole fantasy team with players from Club X.",
+      "duration": 6,
+      "elements": [
+        { "id": "t", "kind": "label", "x": 50, "y": 13, "text": "Every player from Club X", "color": "ink", "h": 8, "enter_at": 0.2 },
+        { "id": "p1", "kind": "circle", "x": 17, "y": 46, "text": "X", "color": "accent", "enter_at": 0.6 },
+        { "id": "p2", "kind": "circle", "x": 30, "y": 46, "text": "X", "color": "accent", "enter_at": 0.8 },
+        { "id": "p3", "kind": "circle", "x": 43, "y": 46, "text": "X", "color": "accent", "enter_at": 1.0 },
+        { "id": "p4", "kind": "circle", "x": 56, "y": 46, "text": "X", "color": "accent", "enter_at": 1.2 },
+        { "id": "p5", "kind": "circle", "x": 69, "y": 46, "text": "X", "color": "accent", "enter_at": 1.4 },
+        { "id": "p6", "kind": "circle", "x": 82, "y": 46, "text": "X", "color": "accent", "enter_at": 1.6 },
+        { "id": "s", "kind": "counter", "x": 50, "y": 78, "text": "points when X wins", "color": "teal", "value_from": 0, "value_to": 90, "enter_at": 2.4 }
+      ]
+    },
+    {
+      "title": "Then Club X loses",
+      "caption": "A 2-0 defeat and a red card. Because they're all teammates, every player blanks in the same weekend.",
+      "duration": 7,
+      "elements": [
+        { "id": "t", "kind": "label", "x": 50, "y": 13, "text": "Club X loses 2-0", "color": "orange", "h": 8, "enter_at": 0.2 },
+        { "id": "p1", "kind": "circle", "x": 17, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.2 },
+        { "id": "p2", "kind": "circle", "x": 30, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.35 },
+        { "id": "p3", "kind": "circle", "x": 43, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.5 },
+        { "id": "p4", "kind": "circle", "x": 56, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.65 },
+        { "id": "p5", "kind": "circle", "x": 69, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.8 },
+        { "id": "p6", "kind": "circle", "x": 82, "y": 46, "text": "X", "color": "accent", "enter_at": 0, "highlight_at": 1.95 },
+        { "id": "s", "kind": "counter", "x": 50, "y": 78, "text": "points this week", "color": "orange", "value_from": 90, "value_to": 20, "enter_at": 2.6 }
+      ]
+    },
+    {
+      "title": "Spread across clubs",
+      "caption": "Same budget, players from different clubs. When Club C loses, only one player blanks and the rest still score.",
+      "duration": 8,
+      "elements": [
+        { "id": "t", "kind": "label", "x": 50, "y": 13, "text": "Players from many clubs", "color": "ink", "h": 8, "enter_at": 0.2 },
+        { "id": "p1", "kind": "circle", "x": 17, "y": 46, "text": "A", "color": "teal", "enter_at": 0.5 },
+        { "id": "p2", "kind": "circle", "x": 30, "y": 46, "text": "B", "color": "gold", "enter_at": 0.7 },
+        { "id": "p3", "kind": "circle", "x": 43, "y": 46, "text": "C", "color": "accent", "enter_at": 0.9, "highlight_at": 3.0 },
+        { "id": "p4", "kind": "circle", "x": 56, "y": 46, "text": "D", "color": "ink", "enter_at": 1.1 },
+        { "id": "p5", "kind": "circle", "x": 69, "y": 46, "text": "E", "color": "muted", "enter_at": 1.3 },
+        { "id": "p6", "kind": "circle", "x": 82, "y": 46, "text": "F", "color": "teal", "enter_at": 1.5 },
+        { "id": "n", "kind": "label", "x": 43, "y": 66, "text": "Club C loses", "color": "orange", "enter_at": 3.2 },
+        { "id": "s", "kind": "counter", "x": 50, "y": 80, "text": "points this week", "color": "teal", "value_from": 58, "value_to": 51, "enter_at": 3.8 }
+      ]
+    },
+    {
+      "title": "Smaller swings, similar average",
+      "caption": "Over five weeks the one-club team swings wildly, while the spread team stays steady. Both average about 55.",
+      "duration": 8,
+      "elements": [
+        { "id": "lt", "kind": "label", "x": 28, "y": 10, "text": "One club", "color": "muted", "enter_at": 0.2 },
+        { "id": "rt", "kind": "label", "x": 72, "y": 10, "text": "Many clubs", "color": "accent", "enter_at": 0.4 },
+        { "id": "a1", "kind": "bar", "x": 14, "y": 84, "w": 5, "h": 62, "text": "W1", "color": "muted", "value_from": 0, "value_to": 90, "enter_at": 0.8 },
+        { "id": "a2", "kind": "bar", "x": 21, "y": 84, "w": 5, "h": 62, "text": "W2", "color": "muted", "value_from": 0, "value_to": 20, "enter_at": 1.2 },
+        { "id": "a3", "kind": "bar", "x": 28, "y": 84, "w": 5, "h": 62, "text": "W3", "color": "muted", "value_from": 0, "value_to": 85, "enter_at": 1.6 },
+        { "id": "a4", "kind": "bar", "x": 35, "y": 84, "w": 5, "h": 62, "text": "W4", "color": "muted", "value_from": 0, "value_to": 25, "enter_at": 2.0 },
+        { "id": "a5", "kind": "bar", "x": 42, "y": 84, "w": 5, "h": 62, "text": "W5", "color": "muted", "value_from": 0, "value_to": 55, "enter_at": 2.4 },
+        { "id": "b1", "kind": "bar", "x": 58, "y": 84, "w": 5, "h": 62, "text": "W1", "color": "accent", "value_from": 0, "value_to": 58, "enter_at": 0.8 },
+        { "id": "b2", "kind": "bar", "x": 65, "y": 84, "w": 5, "h": 62, "text": "W2", "color": "accent", "value_from": 0, "value_to": 51, "enter_at": 1.2 },
+        { "id": "b3", "kind": "bar", "x": 72, "y": 84, "w": 5, "h": 62, "text": "W3", "color": "accent", "value_from": 0, "value_to": 60, "enter_at": 1.6 },
+        { "id": "b4", "kind": "bar", "x": 79, "y": 84, "w": 5, "h": 62, "text": "W4", "color": "accent", "value_from": 0, "value_to": 52, "enter_at": 2.0 },
+        { "id": "b5", "kind": "bar", "x": 86, "y": 84, "w": 5, "h": 62, "text": "W5", "color": "accent", "value_from": 0, "value_to": 55, "enter_at": 2.4 }
+      ]
+    },
+    {
+      "title": "The real concept",
+      "caption": "That's diversification: holdings that don't move together cut volatility. Market-wide risk, like a weekend of 0-0s, still remains.",
+      "duration": 9,
+      "elements": [
+        { "id": "t", "kind": "label", "x": 50, "y": 12, "text": "Spread the risk, keep the return", "color": "ink", "h": 8, "enter_at": 0.2 },
+        { "id": "l1", "kind": "label", "x": 24, "y": 32, "text": "Fantasy team", "color": "accent", "enter_at": 0.8 },
+        { "id": "c1", "kind": "label", "x": 76, "y": 32, "text": "Portfolio", "color": "ink", "enter_at": 1.4 },
+        { "id": "x1", "kind": "arrow", "from_id": "l1", "to_id": "c1", "color": "muted", "enter_at": 1.1 },
+        { "id": "l2", "kind": "label", "x": 24, "y": 47, "text": "Teammates move together", "color": "accent", "enter_at": 2.2 },
+        { "id": "c2", "kind": "label", "x": 76, "y": 47, "text": "Correlation", "color": "ink", "enter_at": 2.8 },
+        { "id": "x2", "kind": "arrow", "from_id": "l2", "to_id": "c2", "color": "muted", "enter_at": 2.5 },
+        { "id": "l3", "kind": "label", "x": 24, "y": 62, "text": "Weekly points swings", "color": "accent", "enter_at": 3.6 },
+        { "id": "c3", "kind": "label", "x": 76, "y": 62, "text": "Volatility", "color": "ink", "enter_at": 4.2 },
+        { "id": "x3", "kind": "arrow", "from_id": "l3", "to_id": "c3", "color": "muted", "enter_at": 3.9 },
+        { "id": "l4", "kind": "label", "x": 24, "y": 77, "text": "Picking many clubs", "color": "accent", "enter_at": 5.0 },
+        { "id": "c4", "kind": "label", "x": 76, "y": 77, "text": "Diversification", "color": "orange", "enter_at": 5.6, "highlight_at": 6.2 },
+        { "id": "x4", "kind": "arrow", "from_id": "l4", "to_id": "c4", "color": "muted", "enter_at": 5.3 }
+      ]
+    }
+  ]
+}

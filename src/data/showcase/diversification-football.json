@@ -1,0 +1,51 @@
+{
+  "concept_title": "Diversification",
+  "chosen_interest": "football",
+  "interest_reason": "Fantasy football managers feel correlation every gameweek: players from the same club win and lose together.",
+  "concept_explanation": "Diversification means spreading money across many investments whose returns don't move perfectly together. When some fall, others hold steady or rise, so the ups and downs partly cancel out. This lowers the portfolio's overall risk (how much its value swings) without necessarily lowering its expected return. It reduces risks specific to one company, but it can't remove market-wide risk that hits everything at once.",
+  "analogy_title": "Don't pick your whole fantasy team from one club",
+  "analogy_narrative": "Imagine filling your fantasy team with eleven players from one club. When they win 4-0, you top your mini-league. When they lose 2-0 and their striker gets a red card, all eleven of your players blank in the same weekend. Now spread the same budget across eight clubs. One club's bad day costs you a couple of players, while others score. Your weekly points still go up and down, but far less wildly, and over a season your average can be just as good.",
+  "mapping": [
+    { "concept": "Portfolio", "analogy": "Your fantasy team" },
+    { "concept": "Individual stock", "analogy": "An individual player" },
+    { "concept": "Correlation", "analogy": "Teammates' points rise and fall together" },
+    { "concept": "Company-specific risk", "analogy": "One club's bad result, an injury, a red card" },
+    { "concept": "Market-wide risk", "analogy": "A weekend where every match is low-scoring" },
+    { "concept": "Volatility", "analogy": "How much your weekly points swing" }
+  ],
+  "visual": {
+    "type": "comparison",
+    "caption": "Same budget, two ways to build a team",
+    "mermaid": "",
+    "steps": [],
+    "comparison_columns": ["Situation", "11 players from one club", "Players from 8 clubs"],
+    "comparison_rows": [
+      ["That club has a great week", "Huge score", "Good score"],
+      ["That club has a bad week", "Disaster: everyone blanks", "Small dip: a few players blank"],
+      ["Week-to-week swings", "Large (high volatility)", "Smaller (lower volatility)"],
+      ["Average over a season", "Similar", "Similar"],
+      ["Every match is low-scoring", "Hurt", "Also hurt: spreading can't fix this"],
+      ["Finance equivalent", "All your money in one stock", "A broad index fund"]
+    ]
+  },
+  "worked_example": [
+    { "step": "Team A: all players from Club X. Club X wins: 90 points. Club X loses: 20 points. Each is equally likely.", "concept_link": "A single concentrated holding: average 55, but a 70-point swing." },
+    { "step": "Team B: players from 8 clubs. Each club's result is roughly independent, so wins and losses mix together each week.", "concept_link": "Holdings that are not perfectly correlated." },
+    { "step": "Team B's weekly scores cluster around 55, for example 48 to 62.", "concept_link": "Similar expected return, much lower volatility." },
+    { "step": "A weekend where every match ends 0-0 still drags both teams down.", "concept_link": "Systematic (market-wide) risk can't be diversified away." }
+  ],
+  "analogy_limits": [
+    "Fantasy rules often force spreading (for example a maximum of 3 players per club). Real investors can concentrate freely, so the discipline has to come from you.",
+    "Fantasy football is about beating other managers, so risky differential picks can be smart. Most investors want steady long-term growth, not to beat their friends this week.",
+    "In market crashes, correlations rise and many investments fall together, so diversification helps less exactly when you'd want it most."
+  ],
+  "check_question": "Why does holding many different investments usually reduce risk?",
+  "check_options": [
+    { "text": "Their returns don't all move together, so losses in some are partly offset by others", "correct": true, "why": "Diversification works because of imperfect correlation. The swings partly cancel out." },
+    { "text": "Owning more investments guarantees a higher return", "correct": false, "why": "Diversification mainly lowers volatility. It doesn't guarantee or raise the expected return." },
+    { "text": "It removes all risk, including market crashes", "correct": false, "why": "Market-wide (systematic) risk remains, as when every match is low-scoring." },
+    { "text": "Smaller individual investments are always safer", "correct": false, "why": "Size isn't the point. Ten small bets on the same company are still one bet." }
+  ],
+  "next_concept": "Index funds and asset allocation",
+  "is_finance": true
+}
