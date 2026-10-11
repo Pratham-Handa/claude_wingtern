@@ -2,7 +2,9 @@
 
 /* Wingtern design tokens (DESIGN.md §10/§11), translated to Tailwind v4.
    Colours are semantic CSS variables so the dark theme (PRD §7B) can swap them. */
-:root {
+/* .report-light keeps the insights report on the light palette even in dark mode. */
+:root,
+.report-light {
   color-scheme: light;
   --ink: #19324a;
   --cream: #f7f8f5;
@@ -47,6 +49,32 @@
   --topbar: rgba(247, 248, 245, 0.94);
   --hover-shadow: rgba(25, 50, 74, 0.08);
   --focus-shadow: rgba(11, 119, 113, 0.1);
+}
+
+/* Printing the insights report: show only the report, on white, one section per block. */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .lens-report-overlay,
+  .lens-report-overlay * {
+    visibility: visible !important;
+  }
+  .lens-report-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .report-section {
+    break-inside: avoid;
+  }
+  @page {
+    margin: 16mm;
+  }
 }
 
 :root[data-theme="dark"] {

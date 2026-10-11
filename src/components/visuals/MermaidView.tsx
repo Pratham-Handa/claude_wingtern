@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { passHeader } from "@/lib/client/stream";
 import { useThemeColors, type ThemeColors } from "@/lib/client/theme";
 
 type State = { status: "loading" } | { status: "ok"; svg: string } | { status: "failed" };
 
 /** Rendered SVGs by source + theme + accent, so theme switches and the lightbox are instant. */
 const svgCache = new Map<string, string>();
+import { apiKeyHeaders } from "@/lib/client/apikey";
+
 /** Haiku-repaired sources, so a theme switch never triggers a second repair call. */
 const repaired = new Map<string, string>();
 /** Sources known to be unrenderable even after repair. */
@@ -115,7 +116,7 @@ export function MermaidView({
         try {
           const res = await fetch("/api/repair", {
             method: "POST",
-            headers: { "Content-Type": "application/json", ...passHeader() },
+            headers: { "Content-Type": "application/json", ...apiKeyHeaders() },
             body: JSON.stringify({ mermaid: source, error: String(err).slice(0, 900) }),
           });
           const data = await res.json();

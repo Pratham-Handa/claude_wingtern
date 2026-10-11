@@ -9,32 +9,35 @@ import { logSignal } from "@/lib/client/signals";
 import { useFullscreen } from "@/lib/client/fullscreen";
 import { useNarration } from "@/lib/client/narration";
 import { PlayerExtras, ScenePlayer } from "./ScenePlayer";
+import { CLIP_RUNTIME } from "./clipRuntime";
 
 const CSP =
   "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:\">";
 
 /**
- * Caption bridge: the sandboxed iframe has an opaque origin, so the parent can't
- * read it. This forwards the clip's caption text to the parent for narration.
- * It re-queries on every DOM change because some clips rebuild the caption
- * element on replay.
+ * Lock model-written HTML down (no network, opaque-origin sandbox) and inject
+ * the clip runtime (virtual clock + caption bridge) before the clip's own scripts.
  */
-const CAPTION_BRIDGE = `<script>(function(){var sel="#lens-caption,[data-lens-caption],#caption,#cap",last="";function send(){var el=document.querySelector(sel);if(!el)return;var t=(el.textContent||"").replace(/\\s+/g," ").trim().replace(/^\\d{1,2}(\\s*\\/\\s*\\d{1,2})?\\s*[·\\-–]?\\s*/,"");if(t&&t!==last){last=t;try{parent.postMessage({type:"lens-caption",text:t},"*")}catch(e){}}}new MutationObserver(send).observe(document.documentElement,{childList:true,characterData:true,subtree:true});send();})();</script>`;
-
-/** Lock model-written HTML down (no network, opaque-origin sandbox) and add the caption bridge. */
 function hardenHtml(raw: string): string {
   let html = raw.trim().replace(/^```(?:html)?\s*/i, "").replace(/```\s*$/, "");
-  if (!/Content-Security-Policy/i.test(html)) {
-    if (/<head[^>]*>/i.test(html)) html = html.replace(/<head([^>]*)>/i, `<head$1>${CSP}`);
-    else html = CSP + html;
-  }
-  if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${CAPTION_BRIDGE}</body>`);
-  else html += CAPTION_BRIDGE;
+  const csp = /Content-Security-Policy/i.test(html) ? "" : CSP;
+  if (/<head[^>]*>/i.test(html)) html = html.replace(/<head[^>]*>/i, (tag) => tag + csp + CLIP_RUNTIME);
+  else html = csp + CLIP_RUNTIME + html;
   return html;
 }
 
 function cacheKey(card: Card, tier: number) {
   return `lens.anim${tier}:${card.concept_title}|${card.chosen_interest}|${card.analogy_title}`.slice(0, 200);
+}
+
+/** The explainer script already generated for this card on this device (for the insights report). */
+export function cachedScene(card: Card): SceneScript | null {
+  try {
+    const raw = localStorage.getItem(cacheKey(card, 1));
+    return raw ? (JSON.parse(raw) as SceneScript) : null;
+  } catch {
+    return null;
+  }
 }
 
 type Tier1State =
@@ -205,17 +208,26 @@ function CinematicPlayer({ html }: { html: string }) {
   const [run, setRun] = useState(0);
   const { speak, cancel, enabled } = narration;
 
+  const tell = (msg: object) => frame.current?.contentWindow?.postMessage(msg, "*");
+
+  // The clip holds each new beat until the previous caption has been spoken,
+  // so captions are spoken in order and never cut off.
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
       if (e.source !== frame.current?.contentWindow) return;
       const data = e.data as { type?: string; text?: unknown };
-      if (data?.type === "lens-caption" && typeof data.text === "string" && enabled) {
-        void speak(data.text.slice(0, 400));
-      }
+      if (data?.type !== "lens-caption" || typeof data.text !== "string") return;
+      if (!enabled) return;
+      void speak(data.text.slice(0, 400)).then(() => tell({ type: "lens-spoken" }));
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [enabled, speak]);
+
+  // Keep the clip in sync with the narration toggle (also sent on each iframe load).
+  useEffect(() => {
+    tell({ type: "lens-narration", on: enabled });
+  }, [enabled, run]);
 
   useEffect(() => cancel, [cancel]);
 
@@ -243,6 +255,7 @@ function CinematicPlayer({ html }: { html: string }) {
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             srcDoc={html}
+            onLoad={() => tell({ type: "lens-narration", on: enabled })}
           />
         </div>
       </div>
@@ -258,7 +271,7 @@ function CinematicPlayer({ html }: { html: string }) {
           <RotateCcw size={16} />
         </button>
         <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.5px] text-muted">
-          {narration.supported ? (enabled ? "Narration on" : "Turn on narration to hear the captions") : ""}
+          {narration.supported ? (enabled ? "Narration on · the clip waits for each sentence" : "Turn on narration to hear the captions") : ""}
         </span>
         <PlayerExtras narration={narration} fsActive={fsActive} onFullscreen={fsToggle} />
       </div>

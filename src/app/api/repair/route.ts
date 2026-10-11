@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MODELS, claude, jsonError } from "@/lib/server/claude";
-import { passcodeOk, rateLimit } from "@/lib/server/ratelimit";
+import { rateLimit } from "@/lib/server/ratelimit";
+import { keyFromRequest } from "@/lib/server/byok";
 
 export const maxDuration = 30;
 
@@ -10,13 +11,16 @@ const RepairRequest = z.object({
 });
 
 export async function POST(req: Request) {
-  if (!passcodeOk(req)) return jsonError("Passcode required.", 401, "pass");
-  if (!rateLimit(req, "repair", 40)) return jsonError("Repair limit reached.", 429, "limit");
+  const { apiKey, error } = keyFromRequest(req);
+  if (error) return jsonError(error, 400, "bad-key");
+  if (!rateLimit(req, apiKey ? "repair-byok" : "repair", apiKey ? 200 : 40)) {
+    return jsonError("Repair limit reached.", 429, "limit");
+  }
   const parsed = RepairRequest.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid request.", 400, "bad");
 
   try {
-    const res = await claude().messages.create({
+    const res = await claude(apiKey).messages.create({
       model: MODELS.repair,
       max_tokens: 4000,
       system:

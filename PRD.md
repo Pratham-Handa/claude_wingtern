@@ -97,11 +97,15 @@ The mapping table is **required output** and is shown to the student. It forces 
 | 8 | **Go further** | Optional | One-line "next concept to learn" |
 
 ### 6.3 Interests (MVP)
-Four interests with curated example content:
+Eight built-in interests (pick up to three):
 - 🏏 Cricket
 - 🏎️ Formula 1
 - ⚽ Football
 - 🎮 Gaming
+- 🎵 Music
+- 🍳 Cooking
+- ♟️ Chess
+- 🏀 Basketball
 
 Stretch: a free-text "Other" interest (e.g. "Taylor Swift eras", "Minecraft redstone").
 
@@ -286,6 +290,8 @@ No Tailwind default blue or grey, no `rounded-full` buttons or cards, no decorat
 ### 8.2a API Budget ($100 org credits)
 
 Pricing per million tokens (input / output): Opus 5.5 is $4 / $20, Sonnet 5.5 is $2 / $10 and Haiku 5.5 is $0.10 / $0.50. Thinking tokens bill as output.
+
+Access rule: the home page, the example cards and their saved animations are public (no Claude call). Anything new needs the access password (owner's credits) or the visitor's own API key (their credits).
 
 | Item | Rough tokens (in / out incl. thinking) | Cost per call | Expected calls | Subtotal |
 |---|---|---|---|---|

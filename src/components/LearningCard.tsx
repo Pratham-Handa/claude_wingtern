@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowRight, Maximize2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, Download, Maximize2 } from "lucide-react";
 import type { Card, SceneScript } from "@/lib/schema";
 import { accentFor, interestById, labelFor } from "@/lib/interests";
 import { Visual, hasVisual } from "./visuals/Visual";
 import { VisualLightbox } from "./visuals/VisualLightbox";
 import { CheckQuestion } from "./CheckQuestion";
-import { WatchIt } from "./motion/WatchIt";
+import { WatchIt, cachedScene } from "./motion/WatchIt";
+import { InsightsReport } from "./report/InsightsReport";
 
 type PartialCard = Partial<Card>;
 
@@ -71,6 +72,8 @@ export function LearningCard({
   const done = !streaming;
   const [visualReady, setVisualReady] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+  // Scenes are read when the report opens, so a storyboard generated in the meantime is included.
+  const [report, setReport] = useState<{ scenes: SceneScript | null } | null>(null);
 
   // The section currently being written gets a skeleton after it.
   const has = {
@@ -94,7 +97,24 @@ export function LearningCard({
               {interest?.glyph ?? "✦"} via {interestLabel}
             </span>
           )}
+          {done && card.concept_title && (
+            <button
+              className="action-button ml-auto !px-2.5 !py-1.5 !text-[12px]"
+              onClick={() => setReport({ scenes: presetScript ?? cachedScene(card as Card) })}
+            >
+              <Download size={14} /> Download insights
+            </button>
+          )}
         </div>
+        {report && (
+          <InsightsReport
+            card={card as Card}
+            accent={accent}
+            label={interestLabel}
+            scenes={report.scenes}
+            onClose={() => setReport(null)}
+          />
+        )}
         {card.concept_title ? (
           <h2 className="mb-0 mt-2 text-[clamp(30px,4vw,44px)] font-bold leading-[1.04] tracking-[-1.6px]">{card.concept_title}</h2>
         ) : (

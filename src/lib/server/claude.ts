@@ -11,7 +11,9 @@ export const MODELS = {
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
 let client: Anthropic | null = null;
-export function claude(): Anthropic {
+/** The server's shared client, or a one-off client for a visitor's own key (never cached). */
+export function claude(apiKey?: string): Anthropic {
+  if (apiKey) return new Anthropic({ apiKey });
   client ??= new Anthropic();
   return client;
 }
@@ -34,6 +36,8 @@ interface StreamArgs {
   format?: unknown;
   /** Abort and report a clear error before the platform's function limit kills the stream. */
   deadlineMs?: number;
+  /** The visitor's own key (bring-your-own-key). Omit to use the server's key. */
+  apiKey?: string;
 }
 
 const FALLBACK_BETA = "server-side-fallback-2026-07-01";
@@ -65,7 +69,7 @@ export function streamLens(args: StreamArgs): Response {
           ...(withFallbacks ? { betas: [FALLBACK_BETA], fallbacks: "default" } : {}),
         };
         // The beta stream accepts `fallbacks`; cast because SDK typings may lag the API.
-        const stream = claude().beta.messages.stream(params as never, { signal: abort.signal });
+        const stream = claude(args.apiKey).beta.messages.stream(params as never, { signal: abort.signal });
         let sentText = false;
         for await (const ev of stream as AsyncIterable<Anthropic.Beta.BetaRawMessageStreamEvent>) {
           if (ev.type === "content_block_start") {
@@ -101,7 +105,7 @@ export function streamLens(args: StreamArgs): Response {
         send(
           abort.signal.aborted
             ? { t: "error", code: "timeout", message: "This one took too long to generate. Try again, or use the explainer animation." }
-            : toErrorEvent(err),
+            : toErrorEvent(err, !!args.apiKey),
         );
       } finally {
         clearInterval(ping);
@@ -120,9 +124,14 @@ export function streamLens(args: StreamArgs): Response {
   });
 }
 
-function toErrorEvent(err: unknown): LensEvent {
+function toErrorEvent(err: unknown, byok: boolean): LensEvent {
   if (err instanceof Anthropic.AuthenticationError) {
-    return { t: "error", code: "auth", message: "The server's Anthropic API key is missing or invalid." };
+    return byok
+      ? { t: "error", code: "auth", message: "Anthropic didn't accept your API key. Check it under Your API key." }
+      : { t: "error", code: "auth", message: "The server's Anthropic API key is missing or invalid." };
+  }
+  if (byok && err instanceof Anthropic.NotFoundError) {
+    return { t: "error", code: "model", message: `Your API key can't use the Claude models Lens needs (${MODELS.card}). Check your organisation's model access.` };
   }
   if (err instanceof Anthropic.RateLimitError) {
     return { t: "error", code: "rate", message: "Claude is rate-limited right now. Try again in a moment." };

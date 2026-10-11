@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { ArrowLeft, Monitor, Moon, Search, SlidersHorizontal, Sun, ThumbsDown, ThumbsUp, Wand2 } from "lucide-react";
+import { ArrowLeft, KeyRound, LogIn, LogOut, Monitor, Moon, Search, SlidersHorizontal, Sun, ThumbsDown, ThumbsUp, Wand2 } from "lucide-react";
 import { useTheme, type ThemePref } from "@/lib/client/theme";
+import { useAccess } from "@/lib/client/access";
 import { INTERESTS, OTHER_ACCENT, accentFor, labelFor } from "@/lib/interests";
 import { CardSchema, type Card, type Mode } from "@/lib/schema";
 import { LensError, partialJson, streamLens } from "@/lib/client/stream";
 import { logSignal, readSignals, summarize, type SignalSummary } from "@/lib/client/signals";
 import { SHOWCASES, type Showcase } from "@/data/showcase";
 import { LearningCard } from "./LearningCard";
+import { ApiKeyButton } from "./ApiKeyDialog";
 
 interface Current {
   question: string;
@@ -47,6 +49,7 @@ function LensInner() {
   const [current, setCurrent] = useState<Current | null>(null);
   const [feedback, setFeedback] = useState<Record<number, boolean>>({});
   const [summary, setSummary] = useState<SignalSummary | null>(() => summarize(readSignals()));
+  const access = useAccess();
   const abort = useRef<AbortController | null>(null);
   const seq = useRef(0);
 
@@ -97,6 +100,12 @@ function LensInner() {
         if (match) return openShowcase(match);
       }
 
+      // Visitors with neither the password nor their own key can still browse; new cards need one of them.
+      if (access.needsSignIn) {
+        setCurrent({ question: text, mode, card: {}, streaming: false, thinking: "", id, error: { message: SIGN_IN_MESSAGE, code: "auth-required" } });
+        return;
+      }
+
       setCurrent({ question: text, mode, card: {}, streaming: true, thinking: "", id });
       window.scrollTo({ top: 0 });
       const update = (patch: Partial<Current>) =>
@@ -136,7 +145,7 @@ function LensInner() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [current, interests, customInterest],
+    [current, interests, customInterest, access.needsSignIn],
   );
 
   const onboarding = editing || interests.length === 0;
@@ -145,18 +154,28 @@ function LensInner() {
     <>
       <TopBar
         right={
-          !onboarding && (
-            <button className="action-button !px-2.5 !py-2 sm:!px-3.5" aria-label="Edit interests" onClick={() => setEditing(true)}>
-              <SlidersHorizontal size={14} /> <span className="hidden sm:inline">Interests</span>
-              <span className="flex gap-0.5">
-                {interests.map((i) => (
-                  <span key={i} aria-hidden>
-                    {INTERESTS.find((x) => x.id === i)?.glyph ?? "✦"}
-                  </span>
-                ))}
-              </span>
-            </button>
-          )
+          <>
+            {!onboarding && (
+              <button className="action-button !px-2.5 !py-2 sm:!px-3.5" aria-label="Edit interests" onClick={() => setEditing(true)}>
+                <SlidersHorizontal size={14} /> <span className="hidden sm:inline">Interests</span>
+                <span className="hidden gap-0.5 sm:flex">
+                  {interests.map((i) => (
+                    <span key={i} aria-hidden>
+                      {INTERESTS.find((x) => x.id === i)?.glyph ?? "✦"}
+                    </span>
+                  ))}
+                </span>
+              </button>
+            )}
+            <ApiKeyButton />
+            {access.signedIn ? (
+              <LogoutButton />
+            ) : access.signedIn === false ? (
+              <Link href="/login" className="action-button !px-2.5 !py-2 sm:!px-3.5">
+                <LogIn size={14} /> <span className="hidden sm:inline">Sign in</span>
+              </Link>
+            ) : null}
+          </>
         }
       />
       <main className="mx-auto max-w-[1180px] px-4 pb-20 pt-6 sm:px-6 sm:pt-12">
@@ -307,7 +326,7 @@ function LensInner() {
 
 /* ---------------- Pieces ---------------- */
 
-function TopBar({ right }: { right?: React.ReactNode }) {
+export function TopBar({ right }: { right?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-10 flex h-[67px] items-center justify-between px-4 backdrop-blur-[10px] sm:h-20 sm:px-[max(24px,calc((100vw-1180px)/2))]" style={{ background: "var(--topbar)" }}>
       <Link href="/" className="flex items-center gap-2.5 text-ink no-underline">
@@ -324,6 +343,24 @@ function TopBar({ right }: { right?: React.ReactNode }) {
   );
 }
 
+function LogoutButton() {
+  return (
+    <button
+      className="action-button !p-2"
+      aria-label="Log out"
+      title="Log out"
+      onClick={async () => {
+        await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+        // Full page load on purpose: the proxy must re-run and in-memory state must be dropped.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/login");
+      }}
+    >
+      <LogOut size={15} />
+    </button>
+  );
+}
+
 const THEME_OPTIONS: { pref: ThemePref; label: string; Icon: typeof Sun }[] = [
   { pref: "system", label: "Match system", Icon: Monitor },
   { pref: "light", label: "Light", Icon: Sun },
@@ -332,8 +369,29 @@ const THEME_OPTIONS: { pref: ThemePref; label: string; Icon: typeof Sun }[] = [
 
 function ThemeToggle() {
   const { pref, setPref } = useTheme();
+  const index = Math.max(0, THEME_OPTIONS.findIndex((o) => o.pref === pref));
+  const current = THEME_OPTIONS[index];
+  const next = THEME_OPTIONS[(index + 1) % THEME_OPTIONS.length];
+  const CurrentIcon = current.Icon;
   return (
-    <div role="group" aria-label="Theme" className="flex rounded-[4px] border border-btn-border bg-surface p-0.5">
+    <>
+      {/* Phones get one button that cycles through the options, so the top bar fits on narrow screens. */}
+      <button
+        onClick={() => setPref(next.pref)}
+        aria-label={`Theme: ${current.label}. Switch to ${next.label}`}
+        title={`Theme: ${current.label}`}
+        className="grid h-8 w-8 place-items-center rounded-[4px] border border-btn-border bg-surface text-teal sm:hidden"
+      >
+        <CurrentIcon size={15} />
+      </button>
+      <ThemeGroup pref={pref} setPref={setPref} />
+    </>
+  );
+}
+
+function ThemeGroup({ pref, setPref }: { pref: ThemePref; setPref: (p: ThemePref) => void }) {
+  return (
+    <div role="group" aria-label="Theme" className="hidden rounded-[4px] border border-btn-border bg-surface p-0.5 sm:flex">
       {THEME_OPTIONS.map(({ pref: p, label, Icon }) => (
         <button
           key={p}
@@ -350,7 +408,7 @@ function ThemeToggle() {
   );
 }
 
-function Hero({ children }: { children: React.ReactNode }) {
+export function Hero({ children }: { children: React.ReactNode }) {
   return (
     <section className="hero px-6 py-10 sm:px-[42px] sm:py-12">
       <div className="orbit" style={{ width: 420, height: 160, right: -90, top: 40, opacity: 0.18, transform: "rotate(-14deg)" }} />
@@ -363,7 +421,7 @@ function Hero({ children }: { children: React.ReactNode }) {
   );
 }
 
-function HeroTitle() {
+export function HeroTitle() {
   return (
     <>
       <div className="eyebrow">Wingtern Lens</div>
@@ -612,28 +670,38 @@ function ModeButton({
   );
 }
 
+const SIGN_IN_MESSAGE = "Sign in with the access password, or add your own API key, to generate new cards.";
+
 function ErrorPanel({ error, onRetry }: { error: { message: string; code?: string }; onRetry: () => void }) {
-  const [pass, setPass] = useState("");
+  if (error.code === "auth-required") {
+    return (
+      <div className="empty-state !text-left">
+        <div className="text-[22px] text-orange">✦</div>
+        <h3 className="mb-0 mt-2 text-[19px] font-bold">Sign in to generate your own</h3>
+        <p className="mb-0 mt-2 text-[14px] text-muted">
+          The example cards and their animations are open to everyone. New questions use Claude, so they need the access password or your own
+          Anthropic API key.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button className="primary-button" onClick={() => window.dispatchEvent(new Event("lens:open-key"))}>
+            <KeyRound size={15} /> Use my API key
+          </button>
+          <Link href="/login" className="action-button">
+            <LogIn size={15} /> Log in with password
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="empty-state !text-left">
       <div className="text-[22px] text-orange">✦</div>
       <h3 className="mb-0 mt-2 text-[19px] font-bold">Lens hit a snag</h3>
       <p className="mb-0 mt-2 text-[14px] text-muted">{error.message}</p>
-      {error.code === "pass" && (
-        <input
-          className="field-input mt-4 max-w-[280px]"
-          placeholder="Demo passcode"
-          value={pass}
-          onChange={(e) => setPass(e.target.value)}
-        />
-      )}
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           className="primary-button"
-          onClick={() => {
-            if (pass) localStorage.setItem("lens.pass", pass);
-            onRetry();
-          }}
+          onClick={onRetry}
         >
           Try again
         </button>

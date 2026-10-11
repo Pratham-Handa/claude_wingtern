@@ -88,7 +88,7 @@ export function useNarration() {
         resolve();
       };
       // Some engines occasionally never fire "end"; don't let the player hang.
-      const safety = setTimeout(finish, 2500 + text.length * 95);
+      const safety = setTimeout(finish, 4000 + text.length * 110);
       u.onend = finish;
       u.onerror = finish;
       if (my === token.current) synth.speak(u);

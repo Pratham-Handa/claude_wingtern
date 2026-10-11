@@ -1,6 +1,7 @@
 "use client";
 
 import { parse as parsePartial, Allow } from "partial-json";
+import { apiKeyHeaders } from "./apikey";
 
 export interface StreamHandlers {
   onThink?: (delta: string) => void;
@@ -14,12 +15,6 @@ export class LensError extends Error {
   }
 }
 
-export function passHeader(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const p = localStorage.getItem("lens.pass");
-  return p ? { "x-lens-pass": p } : {};
-}
-
 /** POSTs to a Lens route and consumes its NDJSON event stream. Resolves with the final text. */
 export async function streamLens(
   url: string,
@@ -29,13 +24,17 @@ export async function streamLens(
 ): Promise<{ text: string; stop: string | null }> {
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...passHeader() },
+    headers: { "Content-Type": "application/json", ...apiKeyHeaders() },
     body: JSON.stringify(body),
     signal,
   });
 
   if (!res.ok || !res.body) {
     const err = await res.json().catch(() => ({ message: `Request failed (${res.status})` }));
+    // The UI shows a sign-in prompt for this code rather than redirecting away from the page.
+    if (res.status === 401 && err.code === "auth-required") {
+      throw new LensError("Sign in with the access password, or add your own API key, to generate new cards.", "auth-required");
+    }
     throw new LensError(err.message ?? "Request failed", err.code);
   }
 

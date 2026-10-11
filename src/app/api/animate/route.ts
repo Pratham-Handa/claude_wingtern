@@ -3,7 +3,8 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { CardSchema, SceneScriptSchema } from "@/lib/schema";
 import { CINEMATIC_SYSTEM, SCENE_SYSTEM } from "@/lib/prompts";
 import { MODELS, jsonError, streamLens } from "@/lib/server/claude";
-import { passcodeOk, rateLimit } from "@/lib/server/ratelimit";
+import { rateLimit } from "@/lib/server/ratelimit";
+import { keyFromRequest } from "@/lib/server/byok";
 
 // Hobby + Fluid compute allows up to 300s; cinematic clips can take 30-90s.
 export const maxDuration = 300;
@@ -15,12 +16,14 @@ const AnimateRequest = z.object({
 });
 
 export async function POST(req: Request) {
-  if (!passcodeOk(req)) return jsonError("Passcode required.", 401, "pass");
+  const { apiKey, error } = keyFromRequest(req);
+  if (error) return jsonError(error, 400, "bad-key");
   const parsed = AnimateRequest.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid request.", 400, "bad");
   const { tier, accent, card } = parsed.data;
 
-  if (!rateLimit(req, `animate${tier}`, tier === 1 ? 15 : 4)) {
+  const byok = !!apiKey;
+  if (!rateLimit(req, `animate${tier}${byok ? "-byok" : ""}`, tier === 1 ? (byok ? 60 : 15) : byok ? 12 : 4)) {
     return jsonError("Animation limit reached for this hour.", 429, "limit");
   }
 
@@ -37,6 +40,7 @@ export async function POST(req: Request) {
 
   if (tier === 1) {
     return streamLens({
+      apiKey,
       model: MODELS.scene,
       system: SCENE_SYSTEM,
       user: `Make the scene script for this learning card:\n${brief}`,
@@ -47,6 +51,7 @@ export async function POST(req: Request) {
   }
 
   return streamLens({
+    apiKey,
     model: MODELS.cinematic,
     system: CINEMATIC_SYSTEM,
     user: `Create the animated explainer for this learning card:\n${brief}`,

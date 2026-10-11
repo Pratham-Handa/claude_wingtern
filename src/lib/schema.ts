@@ -38,7 +38,7 @@ export const VisualSchema = z.object({
 
 export const CardSchema = z.object({
   concept_title: z.string(),
-  chosen_interest: z.string().describe("Interest id used: cricket | f1 | football | gaming | other"),
+  chosen_interest: z.string().describe("Interest id used: cricket | f1 | football | gaming | music | cooking | chess | basketball | other"),
   interest_reason: z.string().describe("One line on why this interest fits the concept structurally"),
   concept_explanation: z.string().describe("2-4 plain sentences, no analogy. The accuracy anchor."),
   analogy_title: z.string(),

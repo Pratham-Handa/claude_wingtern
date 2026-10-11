@@ -1,4 +1,4 @@
-export type InterestId = "cricket" | "f1" | "football" | "gaming" | "other";
+export type InterestId = "cricket" | "f1" | "football" | "gaming" | "music" | "cooking" | "chess" | "basketball" | "other";
 
 export interface Interest {
   id: InterestId;
@@ -52,6 +52,50 @@ export const INTERESTS: Interest[] = [
       "What is recursion?",
       "How does inflation work?",
       "What is an API?",
+    ],
+  },
+  {
+    id: "music",
+    label: "Music",
+    glyph: "🎵",
+    accent: "#d27a9d",
+    starters: [
+      "What is a hash table?",
+      "How does a queue work?",
+      "What is volatility in investing?",
+    ],
+  },
+  {
+    id: "cooking",
+    label: "Cooking",
+    glyph: "🍳",
+    accent: "#ed9861",
+    starters: [
+      "What is a pipeline in software?",
+      "How does compound interest work?",
+      "What is a cache and why is it fast?",
+    ],
+  },
+  {
+    id: "chess",
+    label: "Chess",
+    glyph: "♟️",
+    accent: "#9aaab2",
+    starters: [
+      "What is a decision tree?",
+      "What is expected value?",
+      "How does garbage collection work?",
+    ],
+  },
+  {
+    id: "basketball",
+    label: "Basketball",
+    glyph: "🏀",
+    accent: "#e26b50",
+    starters: [
+      "What is a moving average?",
+      "What is a load balancer?",
+      "How does a bond's yield work?",
     ],
   },
 ];
