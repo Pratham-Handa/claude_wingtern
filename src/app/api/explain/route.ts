@@ -4,6 +4,9 @@ import { CARD_SYSTEM, cardUserPrompt } from "@/lib/prompts";
 import { MODELS, jsonError, streamLens } from "@/lib/server/claude";
 import { rateLimit } from "@/lib/server/ratelimit";
 import { keyFromRequest } from "@/lib/server/byok";
+import { SESSION_COOKIE, sessionPasswordId } from "@/lib/server/auth";
+import { quotaStoreConfigured, takeQuestion } from "@/lib/server/quota";
+import { cookies } from "next/headers";
 
 export const maxDuration = 120;
 
@@ -17,6 +20,18 @@ export async function POST(req: Request) {
 
   const parsed = ExplainRequest.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid request.", 400, "bad");
+
+  // Password visitors get a question quota, so a shared password can't drain the owner's credits.
+  // Visitors on their own key are not counted. Checked after validation so bad requests cost nothing.
+  if (!apiKey) {
+    const pid = sessionPasswordId((await cookies()).get(SESSION_COOKIE)?.value);
+    if (pid) {
+      if (!quotaStoreConfigured()) return jsonError("Question limits aren't set up on this deployment yet.", 503, "quota-setup");
+      if (!(await takeQuestion(pid))) {
+        return jsonError("This access password has used its question. Add your own Anthropic API key to keep going.", 403, "quota");
+      }
+    }
+  }
 
   return streamLens({
     apiKey,

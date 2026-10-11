@@ -29,6 +29,8 @@ The three **example cards** on the home screen (binary search × cricket, compou
 2. In Vercel: **Add New → Project → Import** the repo (framework is auto-detected as Next.js).
 3. Under **Environment Variables**, add `ANTHROPIC_API_KEY` and `LENS_PASSWORD` (the site's access password; comma-separate several to give different people their own). Optionally add `LENS_AUTH_SECRET` (a random string) so that removing one password only signs out that password's users. Without `LENS_PASSWORD`, only visitors with their own API key can get in (see below).
 
+**Question limits for passwords.** Each access password may ask one question (`LENS_QUESTION_LIMIT`, default 1). Counts are kept in a shared store, so add a Vercel KV (Upstash) integration to the project before deploying. It sets `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you. Without it, password visitors are refused in production. Visitors with their own key aren't limited. Animations aren't counted, so the owner's password needs `LENS_QUESTION_LIMIT` raised, or the owner should test with their own key.
+
 **Bring your own key.** Visitors can paste their own Anthropic API key on the login page or under **Your API key** in the top bar. Their usage is billed to them, not to the owner's credits. Keys are kept in the visitor's browser, sent to Anthropic through Lens's server per request, and never stored or logged on the server. A key needs access to the models in use (`claude-opus-5-5`, `claude-haiku-5-5`).
 4. Deploy.
 

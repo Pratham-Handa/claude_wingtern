@@ -77,6 +77,11 @@ export function sessionKind(value: string | undefined): SessionKind | null {
   return passwords().some((p) => passwordId(p) === pid) ? "password" : null;
 }
 
+/** The id of the access password behind a valid password session (used for per-password quotas). */
+export function sessionPasswordId(value: string | undefined): string | null {
+  return sessionKind(value) === "password" ? value!.split(".")[1] : null;
+}
+
 export const sessionCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",

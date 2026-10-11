@@ -673,6 +673,20 @@ function ModeButton({
 const SIGN_IN_MESSAGE = "Sign in with the access password, or add your own API key, to generate new cards.";
 
 function ErrorPanel({ error, onRetry }: { error: { message: string; code?: string }; onRetry: () => void }) {
+  if (error.code === "quota") {
+    return (
+      <div className="empty-state !text-left">
+        <div className="text-[22px] text-orange">✦</div>
+        <h3 className="mb-0 mt-2 text-[19px] font-bold">This password has used its question</h3>
+        <p className="mb-0 mt-2 text-[14px] text-muted">{error.message}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button className="primary-button" onClick={() => window.dispatchEvent(new Event("lens:open-key"))}>
+            <KeyRound size={15} /> Use my API key
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (error.code === "auth-required") {
     return (
       <div className="empty-state !text-left">
